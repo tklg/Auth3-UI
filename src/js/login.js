@@ -232,6 +232,7 @@ function login(e) {
 					inputs.password.removeAttribute('readonly');
 				}
 			} else {
+				signInOrReturn(data);
 				console.info('Done');
 			}
 		} else {
@@ -299,6 +300,7 @@ function checkAuthCode(e) {
 				modal.classList.remove('working');
 			} else {
 				// all done, sign in
+				signInOrReturn(data);
 				console.info('Done');
 			}
 		} else {
@@ -331,5 +333,26 @@ function reset(e) {
 	setTimeout(() => inputs.email.focus(), 300);
 	if (e instanceof MouseEvent) {
 		History.pop();
+	}
+}
+function signInOrReturn(data) {
+
+	if (!data) {
+		console.error('Token data cannot be empty.');
+		return;
+	}
+
+	window.localStorage.setItem('auth3_token', data);
+
+	var s = location.search.substr(1).split('&');
+	var items = {};
+	s.map(x => {
+		var c = x.split('=');
+		items[c[0]] = c[1];
+	});
+	if (items && items.return) {
+		location.href = location.origin + items.return;
+	} else {
+		location.href = location.origin + "/account";
 	}
 }

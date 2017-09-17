@@ -21,14 +21,21 @@
 
 						<form class="carousel-item" id="form-1">
 							<header class="modal-header">
-								<h1>Let <? $application_name ?> access this information?</h1>
+								<h1>Authorize this application?</h1>
+								<h2><em class="application-name" id="app-name"><?= $application_name ?></em> will be able to:</h2>
 							</header>
 
-
+							<ul class="scope-list">
+								<?php foreach ($scopes as $scope) { ?>
+								<li class="scope" id="<?= $scope->getIdentifier() ?>">
+									<?= $scope->getDescription() ?>
+								</li>
+								<?php } ?>
+							</ul>
 							
 							<div class="button-row">
-								<a href="./">Cancel</a>
-								<button class="btn btn-primary" id="btn-next">
+								<a href="./authorize/deny">Cancel</a>
+								<button class="btn btn-primary" id="btn-next" type="button">
 								Authorize
 								<link class="rippleJS">
 								</button>
@@ -44,6 +51,5 @@
 			<a href="about/help">Help</a>
 		</footer>
 	</body>
-	<script src='https://www.google.com/recaptcha/api.js'></script>
-	<script type="text/javascript" src="./js/forgot.bundle.js"></script>
+	<script type="text/javascript" src="./js/authorize.bundle.js"></script>
 </html>

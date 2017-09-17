@@ -13,5 +13,116 @@
 	padding: 40px 0;
 	overflow: hidden;
 
-	
+	.modal-header {
+		// margin: 0 0 60px 0;
+		// height: 56px;
+	}
+	h1 {
+		font-size: 1.6rem;
+		font-weight: normal;
+		margin: 0;
+	}
+	$num_carousel_items: 1;
+	.input-carousel {
+		// margin: 60px 0 0 0;
+		// height: 46px;
+		height: 100%;
+		width: 100%;
+		padding: 0 0 20px 0;
+		overflow-x: hidden;
+		opacity: 1;
+		transition: opacity .2s $transition;
+		// display: flex;
+
+		.carousel-container {
+			width: calc(100% * #{$num_carousel_items});
+			height: 100%;
+			display: flex;
+			transition: margin .3s $transition;
+
+			.carousel-item {
+				display: block;
+				flex: 1;
+				margin: 0 40px;
+
+				h2 {
+					margin: 0;
+					font-weight: normal;
+					font-size: 1rem;
+					height: 50px;
+					color: $black-3;
+				}
+				.application-name {
+					color: $black-2;
+				}
+				.scope-list {
+					list-style: none;
+					margin: 0;
+					padding: 0;
+					height: 100%;
+					max-height: 200px;
+					overflow-y: auto;
+					margin-bottom: 10px;
+
+					.scope {
+						line-height: 40px;
+						padding: 0 10px;
+						border-bottom: 1px solid $black-4;
+					}
+					.scope:last-of-type {
+						border-bottom: none;
+					}
+				}
+				.footer-row {
+					text-align: right;
+					position: absolute;
+					bottom: 20px;
+					width: calc(100% - 80px);
+					margin: 0;
+					color: $text-dark-secondary;
+
+					.btn {
+						margin-left: 20px;
+					}
+					a {
+						color: $accent-2;
+						text-decoration: none;
+					}
+				}
+			}
+		}
+	}
+	.button-row {
+		height: 50px;
+		line-height: 50px;
+		width: 100%;
+		text-align: right;
+
+		a {
+			color: $accent-2;
+			text-decoration: none;
+			float: left;
+		}
+	}
+
+	&.working {
+		pointer-events: none;
+
+		.input-carousel {
+			opacity: 0.5;
+		}
+		.progress {
+			height: 4px;
+			// display: block;
+		}
+	}
+
+	@media screen and (max-width: 600px) {
+		& {
+			width: 100%;
+			height: 100%;
+			// border-radius: 0;
+			box-shadow: none;
+		}
+	}
 }
