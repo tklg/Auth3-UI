@@ -1,0 +1,252 @@
+@import 'rt-raleway';
+@import 'materialdesignicons';
+@import 'styles';
+
+.flex-container {
+	display: flex;
+
+	&.fc-vertical {
+		flex-direction: column;
+	}
+	&.fc-horizontal {
+		flex-direction: row;
+	}
+}
+.flex {
+	flex: 1;
+}
+a {
+	color: $accent-2;
+}
+header {
+	height: 50px;
+	line-height: 50px;
+	width: 100%;
+	// border-bottom: 3px solid $accent-1;
+	background: $accent-1;
+	color: $text-light-primary;
+	box-shadow: $shadow-0;
+
+	#title {
+		margin: 0 20px;
+	}
+}
+.width-restrict {
+	max-width: 800px;
+	width: 100%;
+	margin: 0 auto;
+}
+.main .content {
+	height: 100%;
+	padding: 20px;
+	padding-bottom: 100px;
+
+	.nav.nav-side {
+		width: 200px;
+		// padding-right: 10px;
+
+		ul {
+			margin: 0;
+			padding: 0;
+
+			li {
+				height: 36px;
+				line-height: 36px;
+				list-style: none;
+				padding: 0 10px;
+				border-bottom: 1px solid $black-4;
+				cursor: pointer;
+				transition: background .15s $transition;
+				user-select: none;
+				position: relative;
+				// color: $text-dark-secondary;
+				color: $accent-2;
+
+				&:hover {
+					background: $black-5;
+				}
+				&:last-of-type {
+					border-bottom: none;
+				}
+				&.selected {
+					color: $text-dark-primary;
+
+					&:before {
+						content: '';
+						position: absolute;
+						height: 100%;
+						width: 3px;
+						top: 0;
+						left: 0;
+						background: $accent-2;
+					}
+					&:hover {
+						background: transparent;
+						cursor: default;
+					}
+				}
+			}
+		}
+	}
+	section:not(.shown) {
+		display: none;
+	}
+	.shown {
+		padding: 6px 0 6px 20px;
+		/* background: white;
+		box-shadow: $shadow-0; */
+
+		span {
+			color: $text-dark-secondary;
+		}
+		.button-row {
+			text-align: right;
+		}
+		h1 {
+			font-weight: normal;
+			padding: 10px 0;
+			border-top: 1px solid $black-4;
+
+			&:first-of-type {
+				margin-top: 0;
+				padding-top: 0;
+				border: none;
+			}
+			&.has-subtitle {
+				margin-bottom: 0;
+				padding-bottom: 0;
+			}
+		}
+		&#page-account h1 {
+			border-top: none;
+		}
+		h2 {
+			margin-top: 0;
+			font-weight: normal;
+			font-size: 0.85rem;
+			color: $text-dark-secondary;
+		}
+		.underlined-input {
+			padding: 0;
+			height: 30px;
+			margin-bottom: 20px;
+			// width: 90%;
+
+			& input {
+				height: 30px;
+				line-height: 30px;
+			}
+			& input + .reacts-to {
+				height: 30px;
+			}
+		}
+		.value {
+			line-height: 30px;
+			height: 30px;
+		}
+		.tfa-control {
+			height: 60px;
+			line-height: 60px;
+
+			button {
+				float: right;
+				margin: 12px 0;
+			}
+			#status {
+				display: inline-block;
+				margin: 18px 6px;
+				height: 24px;
+				line-height: 24px;
+				background: $black-4;
+				color: $text-light-primary;
+				border-radius: 4px;
+				padding: 0 10px;
+				font-size: 0.85rem;
+				text-transform: uppercase;
+
+				&.on {
+					background: $color-green;
+				}
+				&.off {
+					background: $color-red;
+				}
+			}
+		}
+		.footnote {
+			font-size: 0.85rem;
+		}
+		#session-list,
+		#history-list,
+		#application-list {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+
+			&:empty {
+				height: 60px;
+				line-height: 60px;
+
+				&:before {
+					content: "No sessions";
+					color: $text-dark-secondary;
+				}
+			}
+			& li {
+				position: relative;
+				padding: 10px 20px;
+				border-bottom: 1px solid $black-5;
+
+				& > span {
+					display: inline-block;
+					width: 100%;
+				}
+				&:last-of-type {
+					border-bottom: none;
+				}
+				&.selected:before {
+					position: absolute;
+					content: '';
+					top: 0;
+					left: 0;
+					height: 100%;
+					width: 3px;
+					background: $accent-2;
+				}
+				button {
+					background: transparent;
+					color: $text-dark-primary;
+					box-shadow: none;
+					border: 1px solid $accent-2;
+					position: absolute;
+					top: 10px;
+					right: 10px;
+
+					&:hover {
+						box-shadow: $shadow-2;
+					}
+				}
+			}
+		}
+		#history-list li {
+			padding: 4px 20px;
+
+			& > span {
+				width: auto;
+
+				&:first-of-type {
+					color: $text-dark-primary;
+				}
+				&:last-of-type {
+					float: right;
+				}
+			}
+		}
+		#application-list li {
+			& > span {
+				&:first-of-type {
+					color: $text-dark-primary;
+				}
+			}
+		}
+	}
+}

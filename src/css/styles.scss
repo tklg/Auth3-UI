@@ -18,10 +18,11 @@ $black-1: rgba(0,0,0,.87);
 $black-2: rgba(0,0,0,.54);
 $black-3: rgba(0,0,0,.38);
 $black-4: rgba(0,0,0,.12);
+$black-5: rgba(0,0,0,.07);
 $primary-dark: #1c1d21;
 $primary-light: #e2e2e2;
 $text-light-primary: white;
-$text-light-secondary: rgba(255,255,255,.4);
+$text-light-secondary: rgba(255,255,255,.6);
 $text-dark-primary: $black-1;
 $text-dark-secondary: $black-2;
 
@@ -34,6 +35,9 @@ $accent-2: #1695A3;
 $accent-3: #ACF0F2;
 $accent-4: #F3FFE2;
 $accent-5: #EB7F00;
+
+$color-green: #66a73e;
+$color-red: #d64949;
 
 // #004358
 // #1F8A70
@@ -85,6 +89,7 @@ body,
 	box-shadow: $shadow-1;
 	transition: box-shadow .15s ease-in-out;
 	cursor: pointer;
+	user-select: none;
 
 	&:focus{
 		outline: initial;
@@ -117,7 +122,8 @@ body,
 a:hover {
 	text-decoration: underline !important;
 }
-.underlined-input {
+.underlined-input,
+.underlined-input-readonly {
 	width: 100%;
 	height: 46px;
 	padding-top: 14px;
@@ -162,7 +168,7 @@ a:hover {
 					margin-left: 50%;
 					width: 0;
 					height: 2px;
-					background: $accent-1;
+					background: $accent-2;
 					transition: margin $transition-time $transition,
 								width $transition-time $transition;
 					opacity: 0;

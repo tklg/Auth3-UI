@@ -3,6 +3,10 @@ const Verimail = require('vendor/verimail.js');
 const verimail = new Verimail();
 const commonPasswords = require('vendor/rockyou-75.js');
 
+const API_ROOT = 'http://localhost/auth3/src/public/api/';
+const API_USER_EXISTS = 'exists/';
+const API_NEW_USER = 'users/new';
+
 const _inputs = document.querySelectorAll('.underlined-input input');
 function onInputFocus(e) {
 	var parent = e.target.parentElement;
@@ -141,9 +145,8 @@ function submitEmail(e) {
 		inputs.email.classList.remove('invalid');
 		modal.classList.add('working');
 
-		var fd = new FormData();
+		/*var fd = new FormData();*/
 		var xhr = new XMLHttpRequest();
-		fd.append('email', email);
 		xhr.onload = () => {
 			if (xhr.status === 200) {
 				var data = xhr.response;
@@ -180,8 +183,8 @@ function submitEmail(e) {
 			errorBox.email.classList.add('invalid');
 			errorBox.email.innerText = data.message;
 		}
-		xhr.open('POST', 'api/users/exists');
-		xhr.send(fd);
+		xhr.open('GET', API_ROOT + API_USER_EXISTS + email);
+		xhr.send(/*fd*/);
 	});
 }
 function checkCommonPasswords(e) {
@@ -237,7 +240,7 @@ function finish(e, which) {
 		var xhr = new XMLHttpRequest();
 		fd.append('email', email);
 		fd.append('password', password);
-		//fd.append('password_confirm', password2);
+		fd.append('password_confirm', password2);
 		fd.append('g-recaptcha-response', recaptcha);
 		xhr.onload = () => {
 			if (xhr.status === 200) {
@@ -255,6 +258,7 @@ function finish(e, which) {
 					}
 				} else {
 					console.info('Done');
+					done();
 				}
 			} else {
 				xhr.onerror();
@@ -278,7 +282,7 @@ function finish(e, which) {
 				errorBox.password.innerText = `Account creation failed (${xhr.status})`;
 			}	
 		}
-		xhr.open('POST', 'api/users/new');
+		xhr.open('POST', API_ROOT + API_NEW_USER);
 		xhr.send(fd);
 		
 	}
@@ -303,4 +307,8 @@ function reset(e) {
 	if (e instanceof MouseEvent) {
 		History.pop();
 	}
+}
+
+function done() {
+	window.location = '/login';
 }

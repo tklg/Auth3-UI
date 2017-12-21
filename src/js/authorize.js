@@ -1,8 +1,8 @@
 require('vanilla-ripplejs');
 
 // require that user log in first
-var obj = window.localStorage.getItem('auth3_token');
-if (!obj || !obj.token) {
+var obj = JSON.parse(window.localStorage.getItem('auth3_token'));
+if (!obj || !obj.access_token) {
 	var loc = document.location;
 	var currentUrl = loc.pathname;
 	var newUrl = loc.origin + '/?return=' + currentUrl;

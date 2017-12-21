@@ -40,61 +40,65 @@ const inputs = {
 setTimeout(() => inputs.email.focus(), 100);
 function finishRecovery(e) {
 	var email = inputs.email.value.trim();
-		//grecaptcha.execute();
-		modal.classList.add('working');
-		errorBox.email.classList.remove('invalid');
+	if (!email) return;
+	//grecaptcha.execute();
+	modal.classList.add('working');
+	errorBox.email.classList.remove('invalid');
 
-		var recaptcha = grecaptcha.getResponse();
-		if (!recaptcha) {
-			errorBox.email.classList.add('invalid');
-			errorBox.email.innerText = "Invalid recaptcha";
-			grecaptcha.reset();
-			return;
-		}
+	var recaptcha = grecaptcha.getResponse();
+	if (!recaptcha) {
+		errorBox.email.classList.add('invalid');
+		errorBox.email.innerText = "Invalid recaptcha";
+		grecaptcha.reset();
+		return;
+	}
 
-		var fd = new FormData();
-		var xhr = new XMLHttpRequest();
-		fd.append('email', email);
-		fd.append('password', password);
-		fd.append('g-recaptcha-response', recaptcha);
-		xhr.onload = () => {
-			if (xhr.status === 200) {
-				var data = xhr.response;
-				if (typeof data == 'string') data = JSON.parse(data);
-				if (data.status && data.status === 'error') {
-					modal.classList.remove('working');
-					grecaptcha.reset();
-					if (data.message.toLowerCase().indexOf('recaptcha') > -1) { // needs captcha
-						
-					} else {
-						errorBox.email.classList.add('invalid');
-						errorBox.email.innerText = data.message;
-					}
-				} else {
-					console.info('Done');
-				}
-			} else {
-				xhr.onerror();
-			}
-		}
-		xhr.onerror = () => {
+	var fd = new FormData();
+	var xhr = new XMLHttpRequest();
+	fd.append('email', email);
+	fd.append('g-recaptcha-response', recaptcha);
+	xhr.onload = () => {
+		if (xhr.status === 200) {
 			var data = xhr.response;
 			if (typeof data == 'string') data = JSON.parse(data);
-			modal.classList.remove('working');
 			if (data.status && data.status === 'error') {
+				modal.classList.remove('working');
 				grecaptcha.reset();
 				if (data.message.toLowerCase().indexOf('recaptcha') > -1) { // needs captcha
+					
 				} else {
 					errorBox.email.classList.add('invalid');
 					errorBox.email.innerText = data.message;
 				}
-				modal.classList.remove('working');
 			} else {
-				errorBox.email.innerText = `Request failed (${xhr.status})`;
-			}	
+				console.info('Done');
+				done();
+			}
+		} else {
+			xhr.onerror();
 		}
-		xhr.open('POST', 'api/users/recover');
-		xhr.send(fd);
-		
+	}
+	xhr.onerror = () => {
+		var data = xhr.response;
+		if (typeof data == 'string') data = JSON.parse(data);
+		modal.classList.remove('working');
+		if (data.status && data.status === 'error') {
+			grecaptcha.reset();
+			if (data.message.toLowerCase().indexOf('recaptcha') > -1) { // needs captcha
+			} else {
+				errorBox.email.classList.add('invalid');
+				errorBox.email.innerText = data.message;
+			}
+			modal.classList.remove('working');
+		} else {
+			errorBox.email.innerText = `Request failed (${xhr.status})`;
+		}	
+	}
+	xhr.open('POST', 'api/users/recover');
+	xhr.send(fd);
 }
-window.finishSignup = finishRecovery;
+window.finishRecovery = finishRecovery;
+
+function done() {
+
+}

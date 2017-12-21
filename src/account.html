@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en-US">
+	<head>
+		<meta charset="utf-8" />
+		<meta author="tkluge" />
+		<meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<link href='https://fonts.googleapis.com/css?family=Roboto:300,400' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" type="text/css" href="./css/account.css">
+		<meta name="theme-color" content="#225378">
+		<title>My account</title>
+	</head>
+	<body class="flex-container fc-vertical">
+		<div id="app">
+			<page-header></page-header>
+			<page-body>
+				<left-nav 
+					slot="nav"
+					:pages="pages" 
+					:select-page="selectPage"
+					:active-page="activePage">
+				</left-nav>
+				<content-account
+					slot="content"
+					:active-page="activePage"
+					:class="{shown: activePage === 0}">
+				</content-account>
+				<content-security
+					slot="content"
+					:active-page="activePage"
+					:class="{shown: activePage === 1}">
+				</content-security>
+				<content-applications
+					slot="content"
+					:active-page="activePage"
+					:class="{shown: activePage === 2}">
+				</content-applications>
+			</page-body>
+		</div>
+	</body>
+	<script type="text/x-template" id="template-header">
+		<header class="header page-header flex-container fc-horizontal">
+			<div class="width-restrict">
+				<span id="title">My account</span>
+			</div>
+		</header>
+	</script>
+	<script type="text/x-template" id="template-body">
+		<main class="main flex flex-container fc-vertical">
+			<div class="width-restrict flex">
+				<div class="content flex-container fc-horizontal">
+					<slot name="nav"></slot>
+					<slot name="content"></slot>
+				</div>
+			</div>
+		</main>
+	</script>
+	<script type="text/x-template" id="template-left-nav">
+		<nav class="nav nav-v nav-side">
+			<ul>
+				<li 
+					v-for="page in pages" 
+					v-on:click="selectPage(page.id)"
+					:class="{selected: activePage === page.id}">
+					{{ page.title }}
+				</li>
+			</ul>
+		</nav>
+	</script>
+	<script type="text/x-template" id="template-content-account">
+		<section class="flex" id="page-account">
+			<h1>Display name</h1>
+			<div class="box">
+				<span>First name</span>
+				<div class="underlined-input">
+					<input type="text" name="firstname" id="firstname-input" />
+					<div class="reacts-to">
+						<div class="input-underline">
+							<div class="input-underline-fill"></div>
+						</div>
+					</div>
+				</div>
+				<span>Last name</span>
+				<div class="underlined-input">
+					<input type="text" name="lastname" id="lastname-input" />
+					<div class="reacts-to">
+						<div class="input-underline">
+							<div class="input-underline-fill"></div>
+						</div>
+					</div>
+				</div>
+				<div class="button-row">
+					<button class="btn btn-primary" id="btn-update-name">
+					Update name
+					<link class="rippleJS">
+					</button>
+				</div>
+			</div>
+			<h1>Email</h1>
+			<div class="box">
+				<span>Email address</span>
+				<div class="underlined-input">
+					<input type="email" name="email" id="email-input" />
+					<div class="reacts-to">
+						<div class="input-underline">
+							<div class="input-underline-fill"></div>
+						</div>
+					</div>
+				</div>
+				<div class="button-row">
+					<button class="btn btn-primary" id="btn-update-email">
+					Update email
+					<link class="rippleJS">
+					</button>
+				</div>
+			</div>
+			<h1>Change password</h1>
+			<div class="box">
+				<span>Old password</span>
+				<div class="underlined-input">
+					<input type="password" name="password-old" id="password-old-input" />
+					<div class="reacts-to">
+						<div class="input-underline">
+							<div class="input-underline-fill"></div>
+						</div>
+					</div>
+				</div>
+				<span>New password</span>
+				<div class="underlined-input">
+					<input type="password" name="password-new" id="password-new-input" />
+					<div class="reacts-to">
+						<div class="input-underline">
+							<div class="input-underline-fill"></div>
+						</div>
+					</div>
+				</div>
+				<span>Confirm new password</span>
+				<div class="underlined-input">
+					<input type="password" name="password-confirm" id="password-confirm-input" />
+					<div class="reacts-to">
+						<div class="input-underline">
+							<div class="input-underline-fill"></div>
+						</div>
+					</div>
+				</div>
+				<div class="button-row">
+					<button class="btn btn-primary" id="btn-update-email">
+					Update password
+					<link class="rippleJS">
+					</button>
+				</div>
+			</div>
+			<h1>Account info</h1>
+			<div class="box">
+				<span>User since</span>
+				<div class="value">Date</div>
+			</div>
+		</section>
+	</script>
+	<script type="text/x-template" id="template-content-security">
+		<section class="flex" id="page-security">
+			<h1>Two-factor authentication</h1>
+			<div class="box">
+				<div class="tfa-control">
+					Status: <span id="status" class="off">off</span>
+					<button class="btn btn-primary">Edit
+						<link class="rippleJS"></button>
+				</div>
+				<span class="footnote hidden">Store your <a href="#">recovery codes</a> somewhere safe.</span>
+			</div>
+			<h1 class="has-subtitle">Sessions</h1>
+			<h2>A list of devices that have logged into your account.</h2>
+			<div class="box">
+				<ul id="session-list">
+					<li class="selected">
+						<button class="btn">Revoke<link class="rippleJS"></button>
+						<span data-value="ip">0.0.0.0</span>
+						<span><span data-value="browser">Browser</span> on <span data-value="os">OS</span></span>
+						<span data-value="country">Country</span>
+						<span data-value="date">January 1, 1999</span>
+					</li>
+					<li>
+						<button class="btn">Revoke<link class="rippleJS"></button>
+						<span data-value="ip">0.0.0.0</span>
+						<span><span data-value="browser">Browser</span> on <span data-value="os">OS</span></span>
+						<span data-value="country">Country</span>
+						<span data-value="date">January 1, 1999</span>
+					</li>
+				</ul>
+			</div>
+			<h1 class="has-subtitle">History</h1>
+			<h2>A security log of events involving your account.</h2>
+			<div class="box">
+				<ul id="history-list">
+					<li>
+						<span>namespace.event</span> <span>description</span> <span>time</span>
+					</li>
+					<li>
+						<span>namespace.event</span> <span>description</span> <span>time</span>
+					</li>
+					<li>
+						<span>namespace.event</span> <span>description</span> <span>time</span>
+					</li>
+				</ul>
+			</div>
+		</section>
+	</script>
+	<script type="text/x-template" id="template-content-applications">
+		<section class="flex" id="page-applications">
+			<h1 class="has-subtitle">Authorized applications</h1>
+			<h2>Applications and websites that have access to your account.</h2>
+			<div class="box">
+				<ul id="application-list">
+					<li>
+						<button class="btn">Revoke<link class="rippleJS"></button>
+						<span data-value="name">Some App</span>
+						<span data-value="scope">Permissions list</span>
+						<span>Access given on <span data-value="date">January 1, 1999</span></span>
+					</li>
+					<li>
+						<button class="btn">Revoke<link class="rippleJS"></button>
+						<span data-value="name">Some App</span>
+						<span data-value="scope">Permissions list</span>
+						<span>Access given on <span data-value="date">January 1, 1999</span></span>
+					</li>
+				</ul>
+			</div>
+		</section>
+	</script>
+	<script type="text/javascript" src="./js/account.bundle.js"></script>
+</html>

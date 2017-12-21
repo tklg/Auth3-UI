@@ -1,12 +1,12 @@
 var gulp = require('gulp');
-var concat = require('gulp-concat');
-var refresh = require('gulp-livereload');
-var webpackStream = require('webpack-stream');
+//var concat = require('gulp-concat');
+//var refresh = require('gulp-livereload');
+//var webpackStream = require('webpack-stream');
 var webpack = require('webpack');
-var cleanCSS = require('gulp-clean-css');
+//var cleanCSS = require('gulp-clean-css');
 var sass = require('gulp-sass');
-var uglify = require('gulp-uglify');
-var embedlr = require('gulp-embedlr');
+//var uglify = require('gulp-uglify');
+//var embedlr = require('gulp-embedlr');
 var argv = require('yargs').argv;
 var gulpif = require('gulp-if');
 var browserSync = require('browser-sync').create();
@@ -71,6 +71,14 @@ gulp.task('css4', function() {
         .pipe(gulp.dest('build/css'))
         .pipe(gulpif(!argv.single, browserSync.stream()));
 });
+gulp.task('css5', function() {
+    gulp.src(['src/css/account.*css'])
+        .pipe(sass(argv.single ? {
+            outputStyle: 'compressed'
+        } : {}).on('error', sass.logError))
+        .pipe(gulp.dest('build/css'))
+        .pipe(gulpif(!argv.single, browserSync.stream()));
+});
 gulp.task('html', function() {
     return gulp.src("src/*.html")
         /*.pipe(gulpif(dev, embedlr({
@@ -96,7 +104,7 @@ gulp.task('serve', function() {
         middleware: miniAPI,
     });
     gulp.watch('src/js/**', ['js-watch']);
-    gulp.watch('src/css/**', ['css1', 'css2', 'css3', 'css4']);
+    gulp.watch('src/css/**', ['css1', 'css2', 'css3', 'css4', 'css5']);
     gulp.watch('src/*.html', ['html-watch']);
 })
 /*gulp.task('watch', function() {

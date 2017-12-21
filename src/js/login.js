@@ -2,6 +2,16 @@ require('vanilla-ripplejs');
 const Verimail = require('vendor/verimail.js');
 const verimail = new Verimail();
 
+const API_ROOT = 'http://localhost/auth3/src/public/api/';
+const API_USER_EXISTS = 'exists/';
+const API_TOKEN = 'token';
+const OAUTH_TOKEN_REQUEST = {
+	grant_type: 'password',
+	client_id: 'testclient',
+	client_secret: 1,
+	scope: 'test'
+};
+
 const _inputs = document.querySelectorAll('.underlined-input input');
 function onInputFocus(e) {
 	var parent = e.target.parentElement;
@@ -114,9 +124,9 @@ function submitEmail(e) {
 		inputs.email.classList.remove('invalid');
 		modal.classList.add('working');
 
-		var fd = new FormData();
+		//var fd = new FormData();
 		var xhr = new XMLHttpRequest();
-		fd.append('email', email);
+		//fd.append('email', email);
 		xhr.onload = () => {
 			if (xhr.status === 200) {
 				var data = xhr.response;
@@ -128,10 +138,10 @@ function submitEmail(e) {
 					modal.classList.remove('working');
 					inputs.email.removeAttribute('readonly');
 				} else {
-					document.getElementById('card-name').innerText = `${data.firstname} ${data.lastname}`;
+					document.getElementById('card-name').innerText = `${data.firstname} ${data.familyname}`;
 					if (data.firstname == email) document.getElementById('card-name').innerText = '';
 					document.getElementById('card-email').innerText = email;
-					document.getElementById('card-image').src = `https://s.gravatar.com/avatar/${data.image}?s=80&d=retro`;
+					document.getElementById('card-image').src = data.image;
 					carousel.setAttribute('data-offset', 1);
 					setTimeout(() => {
 						inputs.password.focus();
@@ -150,10 +160,10 @@ function submitEmail(e) {
 			}
 		}
 		xhr.onerror = () => {
-			var data = xhr.response;
-			if (typeof data == 'string') data = JSON.parse(data);
 			modal.classList.remove('working');
 			inputs.email.removeAttribute('readonly');
+			var data = xhr.response;
+			if (typeof data == 'string') data = JSON.parse(data);
 			errorBox.email.classList.add('invalid');
 			if (data.status && data.status === 'error') {
 				errorBox.email.innerText = data.message;
@@ -161,8 +171,8 @@ function submitEmail(e) {
 				errorBox.email.innerText = `Email check failed (${xhr.status})`;
 			}
 		}
-		xhr.open('POST', 'api/users');
-		xhr.send(fd);
+		xhr.open('GET', API_ROOT + API_USER_EXISTS + email);
+		xhr.send(/*fd*/);
 	});
 }
 
@@ -211,13 +221,17 @@ function login(e) {
 
 	var fd = new FormData();
 	var xhr = new XMLHttpRequest();
-	fd.append('email', email);
+	for (var key in OAUTH_TOKEN_REQUEST) {
+		fd.append(key, OAUTH_TOKEN_REQUEST[key]);
+	}
+	fd.append('username', email);
 	fd.append('password', password);
+	fd.append('authcode', '');
 	xhr.onload = () => {
 		if (xhr.status === 200) {
 			var data = xhr.response;
 			if (typeof data == 'string') data = JSON.parse(data);
-			if (data.status && data.status === 'error') {
+			if (xhr.status === 401 || data.status && data.status === 'error') {
 				if (data.message.toLowerCase().indexOf('factor') > -1) { // one more step
 					carousel.setAttribute('data-offset', 2);
 					setTimeout(() => {
@@ -240,12 +254,12 @@ function login(e) {
 		}
 	}
 	xhr.onerror = () => {
-		var data = xhr.response;
-		if (typeof data == 'string') data = JSON.parse(data);
 		modal.classList.remove('working');
 		inputs.password.removeAttribute('readonly');
 		errorBox.password.classList.add('invalid');
-		if (data.status && data.status === 'error') {
+		var data = xhr.response;
+		if (typeof data == 'string') data = JSON.parse(data);
+		if (xhr.status === 401 || data.status && data.status === 'error') {
 			if (data.message.toLowerCase().indexOf('factor') > -1) { // one more step
 				carousel.setAttribute('data-offset', 2);
 				setTimeout(() => {
@@ -263,7 +277,7 @@ function login(e) {
 			errorBox.password.innerText = `Sign in failed (${xhr.status})`;
 		}	
 	}
-	xhr.open('POST', 'api/login');
+	xhr.open('POST', API_ROOT + API_TOKEN);
 	xhr.send(fd);
 
 }
@@ -287,14 +301,17 @@ function checkAuthCode(e) {
 
 	var fd = new FormData();
 	var xhr = new XMLHttpRequest();
-	fd.append('email', email);
+	for (var key in OAUTH_TOKEN_REQUEST) {
+		fd.append(key, OAUTH_TOKEN_REQUEST[key]);
+	}
+	fd.append('username', email);
 	fd.append('password', password);
 	fd.append('authcode', authcode);
 	xhr.onload = () => {
 		if (xhr.status === 200) {
 			var data = xhr.response;
 			if (typeof data == 'string') data = JSON.parse(data);
-			if (data.status && data.status === 'error') {
+			if (xhr.status === 401 || data.status && data.status === 'error') {
 				errorBox.authcode.classList.add('invalid');
 				errorBox.authcode.innerText = data.message;
 				modal.classList.remove('working');
@@ -308,17 +325,17 @@ function checkAuthCode(e) {
 		}
 	}
 	xhr.onerror = () => {
-		var data = xhr.response;
-		if (typeof data == 'string') data = JSON.parse(data);
 		modal.classList.remove('working');
 		errorBox.authcode.classList.add('invalid');
-		if (data.status && data.status === 'error') {
+		var data = xhr.response;
+		if (typeof data == 'string') data = JSON.parse(data);
+		if (xhr.status === 401 || data.status && data.status === 'error') {
 			errorBox.authcode.innerText = data.message;
 		} else {
 			errorBox.authcode.innerText = `Sign in failed (${xhr.status})`;
 		}	
 	}
-	xhr.open('POST', 'api/login');
+	xhr.open('POST', API_ROOT + API_TOKEN);
 	xhr.send(fd);
 }
 function reset(e) {
@@ -342,7 +359,7 @@ function signInOrReturn(data) {
 		return;
 	}
 
-	window.localStorage.setItem('auth3_token', data);
+	window.localStorage.setItem('auth3_token', JSON.stringify(data));
 
 	var s = location.search.substr(1).split('&');
 	var items = {};

@@ -51,6 +51,13 @@ const miniapi = [
 		}
 	},
 	{
+		route: '/account',
+		handle: function(req, res, next) {
+            req.url += '.html';
+         	next();
+		}
+	},
+	{
 		route: '/api/users/exists',
 		handle: function(req, res, next) {
 			//console.log(req);
