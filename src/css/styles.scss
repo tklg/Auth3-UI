@@ -4,6 +4,11 @@
 	justify-content: center;
     flex-direction: column;
 }
+@mixin ellipsis() {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 $shadow-0: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
 $shadow-0-2: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
 $shadow-1: 0 1.5px 4px rgba(0, 0, 0, 0.24), 0 1.5px 6px rgba(0, 0, 0, 0.12);
@@ -217,58 +222,6 @@ a:hover {
 				opacity: 0;
 				transition: opacity $transition-time $transition;
 			}
-		}
-	}
-}
-.progress {
-	position: absolute;
-	top: 0;
-	//height: 4px;
-	display: block;
-	width: 100%;
-	background-color: $accent-3;
-	background-clip: padding-box;
-	/*margin: 0.5rem 0 1rem 0;*/
-	margin: 0;
-	overflow: hidden;
-	height: 0;
-	// display: none;
-	transition: height .2s ease-in-out;
-
-	.determinate {
-	  position: absolute;
-	  background-color: inherit;
-	  top: 0;
-	  bottom: 0;
-	  background-color: $accent-2;
-	  transition: width .3s linear;
-	}
-	.indeterminate {
-	  background-color: $accent-2;
-
-	  &:before {
-			content: '';
-			position: absolute;
-			background-color: inherit;
-			top: 0;
-			left: 0;
-			bottom: 0;
-			will-change: left, right;
-			-webkit-animation: indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
-			animation: indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
-		}
-		&:after {
-			content: '';
-			position: absolute;
-			background-color: inherit;
-			top: 0;
-			left: 0;
-			bottom: 0;
-			will-change: left, right;
-			-webkit-animation: indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
-			animation: indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
-			-webkit-animation-delay: 1.15s;
-			animation-delay: 1.15s;
 		}
 	}
 }

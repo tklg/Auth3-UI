@@ -138,7 +138,7 @@ function submitEmail(e) {
 					modal.classList.remove('working');
 					inputs.email.removeAttribute('readonly');
 				} else {
-					document.getElementById('card-name').innerText = `${data.firstname} ${data.familyname}`;
+					document.getElementById('card-name').innerText = data.firstname ? (`${data.firstname} ${data.familyname ? data.familyname : ''}`) : '';
 					if (data.firstname == email) document.getElementById('card-name').innerText = '';
 					document.getElementById('card-email').innerText = email;
 					document.getElementById('card-image').src = data.image;

@@ -2,6 +2,9 @@
 @import 'materialdesignicons';
 @import 'styles';
 
+#app {
+	position: relative;
+}
 .flex-container {
 	display: flex;
 
@@ -17,6 +20,15 @@
 }
 a {
 	color: $accent-2;
+	text-decoration: none;
+	cursor: pointer;
+
+	&:hover {
+		text-decoration: underline;
+	}
+}
+.hidden {
+	display: none;
 }
 header {
 	height: 50px;
@@ -29,6 +41,13 @@ header {
 
 	#title {
 		margin: 0 20px;
+
+		.brand {
+			// color: $accent-3;
+		}
+		.tag {
+			display: none;
+		}
 	}
 }
 .width-restrict {
@@ -87,6 +106,44 @@ header {
 				}
 			}
 		}
+		.user-panel-container {
+			// height: 80px;
+			position: relative;
+			border-bottom: 1px solid $black-4;
+
+			.user-panel {
+				height: 80px;
+				width: 100%;
+
+				.user-image-container {
+					height: 80px;
+					width: 60px;
+
+					img {
+						height: 60px;
+						margin: 10px 0;
+						border-radius: 8px;
+					}
+				}
+				.user-info {
+					height: 80px;
+					padding: 0 4px 0 8px;
+					@include flex-center;
+					align-items: left;
+
+					span,
+					a {
+						display: inline-block;
+						width: 136px;
+
+						@include ellipsis();
+					}
+					a {
+						font-size: 0.85rem;
+					}
+				}
+			}
+		}
 	}
 	section:not(.shown) {
 		display: none;
@@ -101,6 +158,11 @@ header {
 		}
 		.button-row {
 			text-align: right;
+
+			.error {
+				padding: 0 10px;
+				color: $color-red;
+			}
 		}
 		h1 {
 			font-weight: normal;
@@ -219,7 +281,7 @@ header {
 					border: 1px solid $accent-2;
 					position: absolute;
 					top: 10px;
-					right: 10px;
+					right: 0;
 
 					&:hover {
 						box-shadow: $shadow-2;
@@ -247,6 +309,53 @@ header {
 					color: $text-dark-primary;
 				}
 			}
+		}
+	}
+}
+#app > .progress {
+	position: absolute;
+	display: inline-block;
+	top: 50px;
+	height: 0;
+	width: 100%;
+	background-color: $accent-3;
+	background-clip: padding-box;
+	margin: 0;
+	overflow: hidden;
+	transition: height .2s $transition,
+				top .2s $transition;
+
+	&.shown {
+		top: 46px;
+		height: 4px;
+	}
+
+	&.shown .indeterminate {
+	  background-color: $accent-2;
+
+		&:before {
+			content: '';
+			position: absolute;
+			background-color: inherit;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			will-change: left, right;
+			-webkit-animation: indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+			animation: indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+		}
+		&:after {
+			content: '';
+			position: absolute;
+			background-color: inherit;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			will-change: left, right;
+			-webkit-animation: indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+			animation: indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+			-webkit-animation-delay: 1.15s;
+			animation-delay: 1.15s;
 		}
 	}
 }

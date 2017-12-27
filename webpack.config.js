@@ -20,14 +20,44 @@ module.exports = {
         filename: '[name].bundle.js',
         path: __dirname + '/build/js'
     },
-    //module: {
-	// 	loaders: [
+    /*rules: [
+        {
+            test: /\.js$/,
+            exclude: /node_modules/,
+            use: {
+                loader: 'babel-loader',
+                options: {
+                    presets: [
+                        '@babel/preset-env',
+                        '@babel/preset-es2015'
+                    ],
+                    plugins: [
+                        require('babel-plugin-transform-es2015-destructuring'),
+                        require('babel-plugin-transform-object-rest-spread')
+                    ]
+                }
+            }
+        }
+    ],*/
+    /*module: {
+	 	loaders: [
+            {
+                test: /\.js?$/,
+                loader: 'babel-loader',
+                exclude: /node_modules/,
+                query: {
+                    presets: [
+                        'env',
+                        'es2015'
+                    ]
+                }
+            }*/
     //       { test: /\.jsx?$/, loader: 'babel-loader', exclude: /node_modules/ },
 	//	   { test: /\.vue?$/, loader: 'vue-loader', exclude: /node_modules/ },
 		   //{ test: /\.css$/, loader: 'style-loader!css-loader' },
 		   //{ test: /\.less$/, loader: 'style-loader!css-loader!less-loader'}
-	// 	]
-	//},
+	/* 	]
+	},*/
     plugins: is_dev ? [] : [
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify(node_env),

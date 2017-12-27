@@ -12,22 +12,35 @@
 	<body class="flex-container fc-vertical">
 		<div id="app">
 			<page-header></page-header>
+			<div class="progress" :class="{shown: loading}">
+			  	<div class="indeterminate"></div>
+			</div>
 			<page-body>
 				<left-nav 
 					slot="nav"
 					:pages="pages" 
 					:select-page="selectPage"
 					:active-page="activePage">
+					<user-panel 
+						slot="userpanel"
+						:user="user"
+						:logout="logout">
+					</user-panel>
 				</left-nav>
 				<content-account
 					slot="content"
 					:active-page="activePage"
-					:class="{shown: activePage === 0}">
+					:class="{shown: activePage === 0}"
+					:user="user"
+					:update="update"
+					:error="error">
 				</content-account>
 				<content-security
 					slot="content"
 					:active-page="activePage"
-					:class="{shown: activePage === 1}">
+					:class="{shown: activePage === 1}"
+					:user-security="userSecurity"
+					:revoke-session="revokeSession">
 				</content-security>
 				<content-applications
 					slot="content"
@@ -40,7 +53,7 @@
 	<script type="text/x-template" id="template-header">
 		<header class="header page-header flex-container fc-horizontal">
 			<div class="width-restrict">
-				<span id="title">My account</span>
+				<span id="title"><span class="brand">Auth3</span><span class="tag">Account</span></span>
 			</div>
 		</header>
 	</script>
@@ -56,6 +69,9 @@
 	</script>
 	<script type="text/x-template" id="template-left-nav">
 		<nav class="nav nav-v nav-side">
+			<aside class="user-panel-container">
+				<slot name="userpanel"></slot>
+			</aside>
 			<ul>
 				<li 
 					v-for="page in pages" 
@@ -70,89 +86,44 @@
 		<section class="flex" id="page-account">
 			<h1>Display name</h1>
 			<div class="box">
-				<span>First name</span>
-				<div class="underlined-input">
-					<input type="text" name="firstname" id="firstname-input" />
-					<div class="reacts-to">
-						<div class="input-underline">
-							<div class="input-underline-fill"></div>
-						</div>
-					</div>
-				</div>
-				<span>Last name</span>
-				<div class="underlined-input">
-					<input type="text" name="lastname" id="lastname-input" />
-					<div class="reacts-to">
-						<div class="input-underline">
-							<div class="input-underline-fill"></div>
-						</div>
-					</div>
-				</div>
-				<div class="button-row">
-					<button class="btn btn-primary" id="btn-update-name">
-					Update name
-					<link class="rippleJS">
-					</button>
-				</div>
+				<label>
+					<span>First name</span>
+					<underlined-input name="firstname" :value="user.firstname"></underlined-input>
+				</label>
+				<label>
+					<span>Last name</span>
+					<underlined-input name="familyname" :value="user.familyname"></underlined-input>
+				</label>
+				<button-row name="Update name" :update="update" click="name" :error="error.name"></button-row>
 			</div>
 			<h1>Email</h1>
 			<div class="box">
-				<span>Email address</span>
-				<div class="underlined-input">
-					<input type="email" name="email" id="email-input" />
-					<div class="reacts-to">
-						<div class="input-underline">
-							<div class="input-underline-fill"></div>
-						</div>
-					</div>
-				</div>
-				<div class="button-row">
-					<button class="btn btn-primary" id="btn-update-email">
-					Update email
-					<link class="rippleJS">
-					</button>
-				</div>
+				<label>
+					<span>Email address</span>
+					<underlined-input name="email" type="email" :value="user.email"></underlined-input>
+				</label>
+				<button-row name="Update email" :update="update" click="email" :error="error.email"></button-row>
 			</div>
 			<h1>Change password</h1>
 			<div class="box">
-				<span>Old password</span>
-				<div class="underlined-input">
-					<input type="password" name="password-old" id="password-old-input" />
-					<div class="reacts-to">
-						<div class="input-underline">
-							<div class="input-underline-fill"></div>
-						</div>
-					</div>
-				</div>
-				<span>New password</span>
-				<div class="underlined-input">
-					<input type="password" name="password-new" id="password-new-input" />
-					<div class="reacts-to">
-						<div class="input-underline">
-							<div class="input-underline-fill"></div>
-						</div>
-					</div>
-				</div>
-				<span>Confirm new password</span>
-				<div class="underlined-input">
-					<input type="password" name="password-confirm" id="password-confirm-input" />
-					<div class="reacts-to">
-						<div class="input-underline">
-							<div class="input-underline-fill"></div>
-						</div>
-					</div>
-				</div>
-				<div class="button-row">
-					<button class="btn btn-primary" id="btn-update-email">
-					Update password
-					<link class="rippleJS">
-					</button>
-				</div>
+				<label>
+					<span>Old password</span>
+					<underlined-input name="password_old" type="password" :value="user.password_old"></underlined-input>
+				</label>
+				<label>
+					<span>New password</span>
+					<underlined-input name="password_new" type="password" :value="user.password_new"></underlined-input>
+				</label>
+				<label>
+					<span>Confirm new password</span>
+					<underlined-input name="password_confirm" type="password" :value="user.password_confirm"></underlined-input>
+				</label>
+				<button-row name="Update password" :update="update" click="password" :error="error.password"></button-row>
 			</div>
 			<h1>Account info</h1>
 			<div class="box">
 				<span>User since</span>
-				<div class="value">Date</div>
+				<div class="value">{{ user.joindate }}</div>
 			</div>
 		</section>
 	</script>
@@ -161,29 +132,21 @@
 			<h1>Two-factor authentication</h1>
 			<div class="box">
 				<div class="tfa-control">
-					Status: <span id="status" class="off">off</span>
-					<button class="btn btn-primary">Edit
-						<link class="rippleJS"></button>
+					Status: <span id="status" :class="{on: userSecurity.hasTwoFactor, off: !userSecurity.hasTwoFactor}">{{ userSecurity.hasTwoFactor ? 'on' : 'off' }}</span>
+					<button class="btn btn-primary">Edit<link class="rippleJS"></button>
 				</div>
-				<span class="footnote hidden">Store your <a href="#">recovery codes</a> somewhere safe.</span>
+				<span class="footnote" v-if="userSecurity.hasTwoFactor">Store your <a href="#">recovery codes</a> somewhere safe.</span>
 			</div>
 			<h1 class="has-subtitle">Sessions</h1>
 			<h2>A list of devices that have logged into your account.</h2>
 			<div class="box">
 				<ul id="session-list">
-					<li class="selected">
-						<button class="btn">Revoke<link class="rippleJS"></button>
-						<span data-value="ip">0.0.0.0</span>
-						<span><span data-value="browser">Browser</span> on <span data-value="os">OS</span></span>
-						<span data-value="country">Country</span>
-						<span data-value="date">January 1, 1999</span>
-					</li>
-					<li>
-						<button class="btn">Revoke<link class="rippleJS"></button>
-						<span data-value="ip">0.0.0.0</span>
-						<span><span data-value="browser">Browser</span> on <span data-value="os">OS</span></span>
-						<span data-value="country">Country</span>
-						<span data-value="date">January 1, 1999</span>
+					<li v-for="session in userSecurity.sessions"  :class="{selected: session.current}">
+						<button class="btn" v-on:click="revokeSession(session.id)">Revoke<link class="rippleJS"></button>
+						<span data-value="ip">{{ session.ip }}</span>
+						<span><span data-value="browser">{{ session.browser }}</span> on <span data-value="os">{{ session.os }}</span></span>
+						<span data-value="country">{{ session.country }}</span>
+						<span data-value="date">Signed in {{ session.created }} </span>
 					</li>
 				</ul>
 			</div>
@@ -191,14 +154,8 @@
 			<h2>A security log of events involving your account.</h2>
 			<div class="box">
 				<ul id="history-list">
-					<li>
-						<span>namespace.event</span> <span>description</span> <span>time</span>
-					</li>
-					<li>
-						<span>namespace.event</span> <span>description</span> <span>time</span>
-					</li>
-					<li>
-						<span>namespace.event</span> <span>description</span> <span>time</span>
+					<li v-for="event in userSecurity.history">
+						<span>{{ event.namespace + '.' + event.action }}</span> <span>{{ event.detail }}</span> <span>{{ event.time }}</span>
 					</li>
 				</ul>
 			</div>
@@ -225,6 +182,44 @@
 				</ul>
 			</div>
 		</section>
+	</script>
+	<script type="text/x-template" id="template-underlined-input">
+		<div class="underlined-input" :class="blurState">
+			<input 
+				:type="type" 
+				:name="name" 
+				:id="'input-' + name"
+				:class="{'has-content': value.length}"
+				:value="value"
+				v-on:input="updateValue(name, $event.target.value)"
+				v-on:focus="onInputFocus"
+				v-on:blur="onInputBlur" />
+			<div class="reacts-to">
+				<div class="input-underline">
+					<div class="input-underline-fill"></div>
+				</div>
+			</div>
+		</div>
+	</script>
+	<script type="text/x-template" id="template-button-row">
+		<div class="button-row">
+			<span class="error" :class="{shown: error.length}">{{ error }}</span>
+			<button class="btn btn-primary" id="btn-update-name" v-on:click="update(click)">
+			{{ name }}
+			<link class="rippleJS">
+			</button>
+		</div>
+	</script>
+	<script type="text/x-template" id="template-user-panel">
+		<div class="user-panel flex-container fc-horizontal">
+			<div class="user-image-container">
+				<img class="user-image" :alt="'profile image of ' + user.firstname" :src="user.image" />
+			</div>
+			<div class="user-info flex">
+				<span class="name">{{ (user.firstname ? user.firstname + (user.familyname ? "\n" + user.familyname : '') : user.email) }}</span>
+				<a v-on:click="logout">Sign out</a>
+			</div>
+		</div>
 	</script>
 	<script type="text/javascript" src="./js/account.bundle.js"></script>
 </html>
