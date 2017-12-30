@@ -41,12 +41,18 @@ Vue.component('content-security', {
 		'activePage',
 		'userSecurity',
 		'revokeSession',
+		'tfaEditing',
+		'tfaEditorContent',
+		'toggleTfaEditing',
+		'enableTfa',
+		'disableTfa',
 	],
 });
 Vue.component('content-applications', {
 	template: '#template-content-applications',
 	props: [
-		'activePage'
+		'activePage',
+		'userApplications',
 	],
 });
 Vue.component('underlined-input', {
@@ -59,7 +65,11 @@ Vue.component('underlined-input', {
 		},
 		value: {
 			type: null,
-			default: ''
+			default: '',
+		},
+		placeholder: {
+			type: String,
+			default: '',
 		},
 	},
 	data: function() {
@@ -74,7 +84,11 @@ Vue.component('underlined-input', {
 	methods: {
 		updateValue: function(what, val) {
 			//this.$emit('input', val);
-			store.commit('setUserData', {[what]: val});
+			if (['authcode', 'qr-secret', 'qr-image'].includes(what)) {
+				store.commit('setTFAData', {[what]: val});
+			} else {
+				store.commit('setUserData', {[what]: val});
+			}
 		},
   		onInputFocus: function() {
   			this.blurState.focusing = true;
@@ -105,6 +119,20 @@ Vue.component('user-panel', {
 		logout: null,
 	},
 });
+Vue.component('tfa-qr-editor', {
+	template: '#template-tfa-qr',
+	props: {
+		tfaEditorContent: null,
+		enableTfa: null,
+		disableTfa: null,
+	},
+});
+Vue.component('tfa-recovery', {
+	template: '#template-tfa-recovery',
+	props: {
+		tfaEditorContent: null,
+	},
+});
 var store = new Vuex.Store({
 	state: {
 		pages: [
@@ -127,11 +155,12 @@ var store = new Vuex.Store({
 	  		email: '',
 	  		image: 'https://placehold.it/80x80',
 	  		joindate: '',
+	  		verified: 'false',
 	  		password_old: '',
 	  		password_new: '',
 	  		password_confirm: '',
 	  	},
-	  	activePage: 1,
+	  	activePage: 0,
 	  	loading: false,
 	  	error: {
 	  		name: '',
@@ -143,6 +172,18 @@ var store = new Vuex.Store({
 	  		sessions: [],
 	  		history: [],
 	  	},
+	  	userApplications: {
+	  		applications: [],
+	  	},
+	  	tfaEditing: 0,
+	  	tfaEditorContent: {
+	  		error: null,
+	  		authcode: '',
+	  		qr_image: 'https://placehold.it/180x180',
+	  		qr_secret: 'Generating secret...',
+	  		recovery_codes: [],
+	  		alreadyEnabled: false,
+	  	},
 	},
 	mutations: {
 		changeActivePage(state, id) {
@@ -150,9 +191,14 @@ var store = new Vuex.Store({
 		},
 		setUserData(state, data) {
 			for (var key in data) {
-				if (key === 'joindate') state.user[key] = DateFormat.format(data[key]/*, 'MM d, y at h:m:s'*/);
+				if (key === 'joindate') state.user[key] = DateFormat.format(data[key]/*, 'MM d, yy at h:m:s'*/);
 				else state.user[key] = data[key] || '';
   			}
+		},
+		setTFAData(state, data) {
+			for (var key in data) {
+				state.tfaEditorContent[key] = data[key];
+			}
 		},
 		setUserSecurity(state, data) {
 			for (var key in data) {
@@ -161,7 +207,7 @@ var store = new Vuex.Store({
   					return x;
   				});
   				else if (key === 'history') state.userSecurity[key] = data[key].map(x => {
-  					x.time = DateFormat.format(x.time, 'j-d-y@h:m');
+  					x.time = DateFormat.format(x.time, 'j-d-y at h:m');
   					return x;
   				});
   				else state.userSecurity[key] = data[key] || '';
@@ -169,7 +215,12 @@ var store = new Vuex.Store({
 		},
 		setUserApplications(state, data) {
 			for (var key in data) {
-  				state.userApplications[key] = data[key] || '';
+				if (key === 'applications') {
+					state.userApplications[key] = data[key].map(x => {
+						x.date = DateFormat.format(x.date, 'MM d, yy');
+						return x;
+					});
+				} else state.userApplications[key] = data[key] || '';
   			}
 		},
 		setError(state, data) {
@@ -179,7 +230,10 @@ var store = new Vuex.Store({
 		},
 		setLoading(state, data) {
 			state.loading = !!data;
-		}
+		},
+		setTfaEditing(state, data) {
+			state.tfaEditing = data;
+		},
 	},
 });
 var app = new Vue({
@@ -370,6 +424,105 @@ var app = new Vue({
   				}
   			});
   		},
+  		toggleTfaEditing: function(gen) {
+  			if (store.state.tfaEditing) {
+  				if (gen) {
+  					store.commit('setTfaEditing', 0);
+  					store.commit('setTFAData', {
+	  					error: null,
+				  		authcode: '',
+				  		'qr_image': 'https://placehold.it/180x180',
+				  		'qr_secret': 'Generating secret...',
+	  				});
+  				} else {
+  					this.showTfaCodes();
+  				}
+  			} else {
+  				if (gen) {
+		  			store.commit('setLoading', true);
+		  			Ajax.get({
+		  				url: 'http://localhost/auth3/src/public/api/user/security/twofactor?size=180',
+		  				success: function(data) {
+		  					store.commit('setLoading', false);
+		  					var obj = JSON.parse(data);
+  							store.commit('setTfaEditing', 1);
+  							if (obj.error && obj.error.includes('already')) {
+  								store.commit('setTFAData', {
+  									alreadyEnabled: true,
+  								});
+  							} else {
+		  						store.commit('setTFAData', obj);
+  							}
+		  				},
+		  				error: function(data) {
+		  					store.commit('setLoading', false);
+		  				}
+		  			});
+  				} else {
+  					this.showTfaCodes();
+  				}			
+  			}
+  		},
+  		enableTfa: function() {
+  			let _this = this;
+		  	store.commit('setLoading', true);
+  			Ajax.post({
+		  		url: 'http://localhost/auth3/src/public/api/user/security/twofactor',
+		  		data: {
+		  			authcode: store.state.tfaEditorContent.authcode,
+		  		},
+		  		success: function(data) {
+		  			store.commit('setLoading', false);
+  					_this.showTfaCodes();
+		  			var obj = JSON.parse(data);
+		  			store.commit('setTFAData', obj);
+		  			store.commit('setUserSecurity', {
+		  				hasTwoFactor: true,
+		  			});
+		  		},
+		  		error: function(data) {
+		  			store.commit('setLoading', false);
+		  		}
+		  	});
+  		},
+  		disableTfa: function() {
+  			let _this = this;
+		  	store.commit('setLoading', true);
+  			Ajax.delete({
+		  		url: 'http://localhost/auth3/src/public/api/user/security/twofactor',
+		  		success: function(data) {
+		  			store.commit('setLoading', false);
+		  			var obj = JSON.parse(data);
+		  			store.commit('setTFAData', {
+	  					error: null,
+				  		authcode: '',
+				  		'qr_image': 'https://placehold.it/180x180',
+				  		'qr_secret': 'Generating secret...',
+	  				});
+		  			store.commit('setUserSecurity', {
+		  				hasTwoFactor: false,
+		  			});
+		  			store.commit('setTfaEditing', 0);
+		  		},
+		  		error: function(data) {
+		  			store.commit('setLoading', false);
+		  		}
+		  	});
+  		},
+  		showTfaCodes: function() {
+  			Ajax.get({
+		  		url: 'http://localhost/auth3/src/public/api/user/security/twofactor/codes',
+		  		success: function(data) {
+		  			store.commit('setLoading', false);
+		  			var obj = JSON.parse(data);
+		  			store.commit('setTFAData', obj);
+		  			store.commit('setTfaEditing', 2);
+		  		},
+		  		error: function(data) {
+		  			store.commit('setLoading', false);
+		  		}
+		  	});
+  		}
   	},
   	created: function() {
   		var obj = JSON.parse(window.localStorage.getItem('auth3_token'));

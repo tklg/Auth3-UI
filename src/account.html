@@ -40,11 +40,17 @@
 					:active-page="activePage"
 					:class="{shown: activePage === 1}"
 					:user-security="userSecurity"
-					:revoke-session="revokeSession">
+					:revoke-session="revokeSession"
+					:tfa-editing="tfaEditing"
+					:toggle-tfa-editing="toggleTfaEditing"
+					:tfa-editor-content="tfaEditorContent"
+					:enable-tfa="enableTfa"
+					:disable-tfa="disableTfa">
 				</content-security>
 				<content-applications
 					slot="content"
 					:active-page="activePage"
+					:user-applications="userApplications"
 					:class="{shown: activePage === 2}">
 				</content-applications>
 			</page-body>
@@ -124,6 +130,8 @@
 			<div class="box">
 				<span>User since</span>
 				<div class="value">{{ user.joindate }}</div>
+				<span>Email verification</span>
+				<div class="value">{{ user.verified }}</div>
 			</div>
 		</section>
 	</script>
@@ -131,11 +139,13 @@
 		<section class="flex" id="page-security">
 			<h1>Two-factor authentication</h1>
 			<div class="box">
-				<div class="tfa-control">
+				<div class="tfa-control" :class="{editing: !!tfaEditing}">
 					Status: <span id="status" :class="{on: userSecurity.hasTwoFactor, off: !userSecurity.hasTwoFactor}">{{ userSecurity.hasTwoFactor ? 'on' : 'off' }}</span>
-					<button class="btn btn-primary">Edit<link class="rippleJS"></button>
+					<button class="btn btn-primary" id="btn-edit" :class="{editing: !!tfaEditing}" v-on:click="toggleTfaEditing(true)">{{ tfaEditing ? 'Cancel' : 'Edit'}}<link class="rippleJS"></button>
+					<tfa-qr-editor :tfa-editor-content="tfaEditorContent" v-if="tfaEditing == 1" :enable-tfa="enableTfa" :disable-tfa="disableTfa"></tfa-qr-editor>
+					<tfa-recovery :tfa-editor-content="tfaEditorContent" v-if="tfaEditing == 2"></tfa-recovery>
 				</div>
-				<span class="footnote" v-if="userSecurity.hasTwoFactor">Store your <a href="#">recovery codes</a> somewhere safe.</span>
+				<span class="footnote" v-if="userSecurity.hasTwoFactor" v-on:click="toggleTfaEditing(false)">Store your <a href="#">recovery codes</a> somewhere safe.</span>
 			</div>
 			<h1 class="has-subtitle">Sessions</h1>
 			<h2>A list of devices that have logged into your account.</h2>
@@ -167,17 +177,11 @@
 			<h2>Applications and websites that have access to your account.</h2>
 			<div class="box">
 				<ul id="application-list">
-					<li>
+					<li v-for="app in userApplications.applications">
 						<button class="btn">Revoke<link class="rippleJS"></button>
-						<span data-value="name">Some App</span>
-						<span data-value="scope">Permissions list</span>
-						<span>Access given on <span data-value="date">January 1, 1999</span></span>
-					</li>
-					<li>
-						<button class="btn">Revoke<link class="rippleJS"></button>
-						<span data-value="name">Some App</span>
-						<span data-value="scope">Permissions list</span>
-						<span>Access given on <span data-value="date">January 1, 1999</span></span>
+						<span data-value="name">{{ app.name }}</span>
+						<span data-value="scope">{{ app.scopes }}</span>
+						<span>Last used on <span data-value="date">{{ app.date }}</span></span>
 					</li>
 				</ul>
 			</div>
@@ -191,6 +195,7 @@
 				:id="'input-' + name"
 				:class="{'has-content': value.length}"
 				:value="value"
+				:placeholder="placeholder" 
 				v-on:input="updateValue(name, $event.target.value)"
 				v-on:focus="onInputFocus"
 				v-on:blur="onInputBlur" />
@@ -219,6 +224,33 @@
 				<span class="name">{{ (user.firstname ? user.firstname + (user.familyname ? "\n" + user.familyname : '') : user.email) }}</span>
 				<a v-on:click="logout">Sign out</a>
 			</div>
+		</div>
+	</script>
+	<script type="text/x-template" id="template-tfa-qr">
+		<div class="qr-editor flex-container fc-horizontal">
+			<div class="qr-container" v-if="!tfaEditorContent.alreadyEnabled">
+				<img class="qr" :alt="tfaEditorContent.qr_secret" :src="tfaEditorContent.qr_image" />
+			</div>
+			<div class="instructions flex" v-if="!tfaEditorContent.alreadyEnabled">
+				Scan the QR code to the left or manually enter this code:
+				<pre>{{ tfaEditorContent.qr_secret }}</pre>
+				Then, enter the 6-digit authentication code below:
+				<div class="flex-container fc-horizontal">
+					<underlined-input class="flex" name="authcode" :value="tfaEditorContent.authcode" placeholder="Auth code (xxxxxx)"></underlined-input>
+					<button class="btn btn-primary" v-on:click="enableTfa">Submit</button>
+				</div>
+			</div>
+			<div class="instructions flex flex-container fc-horizontal" id="tfa-disable" v-if="tfaEditorContent.alreadyEnabled">
+				<span class="flex">Remove two-factor authentication from your account?</span>
+				<button class="btn btn-primary" v-on:click="disableTfa">Disable 2FA</button>
+			</div>
+		</div>
+	</script>
+	<script type="text/x-template" id="template-tfa-recovery">
+		<div class="qr-editor">
+			<ul>
+				<li v-for="code in tfaEditorContent.recovery_codes">{{ code.code }}</li>
+			</ul>
 		</div>
 	</script>
 	<script type="text/javascript" src="./js/account.bundle.js"></script>

@@ -68,7 +68,7 @@ class _DateFormat {
 		return this.str;
 	}
 	replace(find, repl) {
-		let reg = new RegExp('(.*\\W)?' + find + '(\\W.*)?', 'g');
+		let reg = new RegExp('(.*\\W|^)' + find + '(\\W.*|$)', 'g');
 		this.str = this.str.replace(reg, `$1${repl}$2`);
 	}
 }

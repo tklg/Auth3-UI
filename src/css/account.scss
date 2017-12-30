@@ -213,6 +213,10 @@ header {
 			button {
 				float: right;
 				margin: 12px 0;
+				
+				&.editing {
+					background: $color-red;
+				}
 			}
 			#status {
 				display: inline-block;
@@ -233,6 +237,78 @@ header {
 					background: $color-red;
 				}
 			}
+			.qr-editor {
+				display: none;
+			}
+			&.editing {
+				height: auto;
+
+				.qr-editor {
+					display: flex;
+					height: 180px;
+					line-height: initial;
+
+					.qr-container {
+						width: 180px;
+						height: 100%;
+
+						img {
+							height: 100%;
+							width: 100%;
+						}
+					}
+					.instructions {
+						padding: 8px 0 8px 10px;
+
+						pre {
+							color: $accent-2;
+							font-size: 1.2rem;
+						}
+						.underlined-input {
+							margin: 15px 10px 15px 0;
+						}
+						button {
+							margin-right: 0;
+						}
+
+						&#tfa-disable {
+							span {
+								// width: 100%;
+								// display: inline-block;
+								height: 36px;
+								line-height: 36px;
+								margin: 12px 0;
+							}
+							// text-align: center;
+						}
+					}
+					ul {
+						margin: 0;
+						padding: 0;
+						width: 50%;
+						min-width: 270px;
+						height: 100%;
+						position: relative;
+
+						&:empty:before {
+							height: 100%;
+							width: 100%;
+							position: absolute;
+							top: 0;
+							left: 0;
+							content: 'No recovery codes remaining.';
+							color: $text-dark-secondary;
+							@include flex-center();
+						}
+						li {
+							display: inline-block;
+							width: 50%;
+							font-family: monospace;
+							font-size: 1.1rem;
+						}
+					}
+				}
+			}
 		}
 		.footnote {
 			font-size: 0.85rem;
@@ -249,7 +325,7 @@ header {
 				line-height: 60px;
 
 				&:before {
-					content: "No sessions";
+					content: "No items";
 					color: $text-dark-secondary;
 				}
 			}
