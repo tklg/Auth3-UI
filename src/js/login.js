@@ -2,14 +2,15 @@ require('vanilla-ripplejs');
 const Verimail = require('vendor/verimail.js');
 const verimail = new Verimail();
 
-const API_ROOT = 'http://localhost/auth3/src/public/api/';
+//const API_ROOT = location.protocol + "//" + location.hostname + "/auth3/src/public/api/";
+const API_ROOT = "api/";
 const API_USER_EXISTS = 'exists/';
 const API_TOKEN = 'token';
 const OAUTH_TOKEN_REQUEST = {
 	grant_type: 'password',
-	client_id: 'testclient',
+	client_id: 'auth3-c2f0ebded9',
 	client_secret: 1,
-	scope: 'test'
+	scope: 'user.all'
 };
 
 const _inputs = document.querySelectorAll('.underlined-input input');
@@ -291,12 +292,14 @@ function checkAuthCode(e) {
 	var password = inputs.password.value;
 	var authcode = inputs.authcode.value.replace(/[- ]/g, '');
 
-	if (authcode.length === 0 || !/^\d{6}$/.test(authcode)) {
-		errorBox.authcode.classList.add('invalid');
-		errorBox.authcode.innerText = "Please enter a valid code";
-		modal.classList.remove('working');
-		inputs.authcode.removeAttribute('readonly');
-		return;
+	if (authcode.length === 0 || !/^\d{6}$/.test(authcode)) { // not a 6-digit code
+		if (!/^[a-z0-9]{10}$/i.test(authcode)) { // also not a recovery code
+			errorBox.authcode.classList.add('invalid');
+			errorBox.authcode.innerText = "Please enter a valid code";
+			modal.classList.remove('working');
+			inputs.authcode.removeAttribute('readonly');
+			return;
+		}
 	}
 
 	var fd = new FormData();
@@ -368,7 +371,7 @@ function signInOrReturn(data) {
 		items[c[0]] = c[1];
 	});
 	if (items && items.return) {
-		location.href = location.origin + items.return;
+		location.href = decodeURIComponent(items.return);
 	} else {
 		location.href = location.origin + "/account";
 	}

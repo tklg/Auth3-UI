@@ -12,7 +12,7 @@
 	<body class="flex-container fc-vertical">
 		<div id="app">
 			<page-header></page-header>
-			<div class="progress" :class="{shown: loading}">
+			<div class="progress" :class="{shown: loading, bound: scrollPos >= 50}">
 			  	<div class="indeterminate"></div>
 			</div>
 			<page-body>
@@ -33,24 +33,28 @@
 					:class="{shown: activePage === 0}"
 					:user="user"
 					:update="update"
-					:error="error">
+					:error="error"
+					:send-verification-email="sendVerificationEmail">
 				</content-account>
 				<content-security
 					slot="content"
 					:active-page="activePage"
 					:class="{shown: activePage === 1}"
+					:update="fetchTfaCodes"
 					:user-security="userSecurity"
 					:revoke-session="revokeSession"
 					:tfa-editing="tfaEditing"
 					:toggle-tfa-editing="toggleTfaEditing"
 					:tfa-editor-content="tfaEditorContent"
 					:enable-tfa="enableTfa"
-					:disable-tfa="disableTfa">
+					:disable-tfa="disableTfa"
+					:regenerate-tfa="regenerateTfa">
 				</content-security>
 				<content-applications
 					slot="content"
 					:active-page="activePage"
 					:user-applications="userApplications"
+					:revoke-client="revokeClient"
 					:class="{shown: activePage === 2}">
 				</content-applications>
 			</page-body>
@@ -91,7 +95,7 @@
 	<script type="text/x-template" id="template-content-account">
 		<section class="flex" id="page-account">
 			<h1>Display name</h1>
-			<div class="box">
+			<div class="box" v-on:keyup.enter="update('name')">
 				<label>
 					<span>First name</span>
 					<underlined-input name="firstname" :value="user.firstname"></underlined-input>
@@ -102,16 +106,18 @@
 				</label>
 				<button-row name="Update name" :update="update" click="name" :error="error.name"></button-row>
 			</div>
-			<h1>Email</h1>
-			<div class="box">
+			<h1><span>Email</span> <span class="status" :class="{verified: user.verified == 'verified', unverified: user.verified != 'verified'}">{{ user.verified == 'verified' ? 'Verified' : 'Not verified' }}</span></h1>
+			<div class="box" v-on:keyup.enter="update('email')">
 				<label>
 					<span>Email address</span>
 					<underlined-input name="email" type="email" :value="user.email"></underlined-input>
 				</label>
-				<button-row name="Update email" :update="update" click="email" :error="error.email"></button-row>
+				<button-row name="Update email" :update="update" click="email" :error="error.email">
+					<button class="btn btn-clear hide-if-error" v-if="user.verified != 'verified'" v-on:click="sendVerificationEmail" slot="secondary-button">Resend verification email<link class="rippleJS"></button>
+				</button-row>
 			</div>
 			<h1>Change password</h1>
-			<div class="box">
+			<div class="box" v-on:keyup.enter="update('password')">
 				<label>
 					<span>Old password</span>
 					<underlined-input name="password_old" type="password" :value="user.password_old"></underlined-input>
@@ -130,8 +136,6 @@
 			<div class="box">
 				<span>User since</span>
 				<div class="value">{{ user.joindate }}</div>
-				<span>Email verification</span>
-				<div class="value">{{ user.verified }}</div>
 			</div>
 		</section>
 	</script>
@@ -142,21 +146,36 @@
 				<div class="tfa-control" :class="{editing: !!tfaEditing}">
 					Status: <span id="status" :class="{on: userSecurity.hasTwoFactor, off: !userSecurity.hasTwoFactor}">{{ userSecurity.hasTwoFactor ? 'on' : 'off' }}</span>
 					<button class="btn btn-primary" id="btn-edit" :class="{editing: !!tfaEditing}" v-on:click="toggleTfaEditing(true)">{{ tfaEditing ? 'Cancel' : 'Edit'}}<link class="rippleJS"></button>
-					<tfa-qr-editor :tfa-editor-content="tfaEditorContent" v-if="tfaEditing == 1" :enable-tfa="enableTfa" :disable-tfa="disableTfa"></tfa-qr-editor>
-					<tfa-recovery :tfa-editor-content="tfaEditorContent" v-if="tfaEditing == 2"></tfa-recovery>
+					<tfa-qr-editor 
+						:tfa-editor-content="tfaEditorContent" 
+						:tfa-enabled="userSecurity.hasTwoFactor" 
+						v-if="tfaEditing == 1" 
+						:enable-tfa="enableTfa" 
+						:disable-tfa="disableTfa"></tfa-qr-editor>
+					<div class="qr-editor" v-if="tfaEditing == 2" v-on:keyup.enter="update('tfa_password')">
+						<label>
+							<span>Enter your password</span>
+							<underlined-input autofocus name="tfa_password" type="password" :value="tfaEditorContent.tfa_password"></underlined-input>
+						</label>
+						<button-row name="View codes" :update="update" click="tfa_password" :error="tfaEditorContent.error"></button-row>
+					</div>
+					<tfa-recovery 
+						:tfa-editor-content="tfaEditorContent" 
+						:regenerate-tfa="regenerateTfa"
+						v-if="tfaEditing == 3"></tfa-recovery>
 				</div>
 				<span class="footnote" v-if="userSecurity.hasTwoFactor" v-on:click="toggleTfaEditing(false)">Store your <a href="#">recovery codes</a> somewhere safe.</span>
 			</div>
 			<h1 class="has-subtitle">Sessions</h1>
-			<h2>A list of devices that have logged into your account.</h2>
+			<h2>A list of active access tokens for your account.</h2>
 			<div class="box">
 				<ul id="session-list">
 					<li v-for="session in userSecurity.sessions"  :class="{selected: session.current}">
 						<button class="btn" v-on:click="revokeSession(session.id)">Revoke<link class="rippleJS"></button>
-						<span data-value="ip">{{ session.ip }}</span>
-						<span><span data-value="browser">{{ session.browser }}</span> on <span data-value="os">{{ session.os }}</span></span>
-						<span data-value="country">{{ session.country }}</span>
-						<span data-value="date">Signed in {{ session.created }} </span>
+						<span>{{ session.ip }}</span>
+						<span><span>{{ session.browser }}</span> on <span>{{ session.os }}</span></span>
+						<span>{{ session.country }}</span>
+						<span>Last used on {{ session.created }} </span>
 					</li>
 				</ul>
 			</div>
@@ -164,8 +183,8 @@
 			<h2>A security log of events involving your account.</h2>
 			<div class="box">
 				<ul id="history-list">
-					<li v-for="event in userSecurity.history">
-						<span>{{ event.namespace + '.' + event.action }}</span> <span>{{ event.detail }}</span> <span>{{ event.time }}</span>
+					<li class="flex-container" v-for="event in userSecurity.history" :title="event.detail + ' at ' + event.time">
+						<span>{{ event.namespace + '.' + event.action }}</span> <span class="flex">{{ event.detail }}</span> <span>{{ event.time }}</span>
 					</li>
 				</ul>
 			</div>
@@ -178,10 +197,15 @@
 			<div class="box">
 				<ul id="application-list">
 					<li v-for="app in userApplications.applications">
-						<button class="btn">Revoke<link class="rippleJS"></button>
-						<span data-value="name">{{ app.name }}</span>
-						<span data-value="scope">{{ app.scopes }}</span>
-						<span>Last used on <span data-value="date">{{ app.date }}</span></span>
+						<button class="btn" v-on:click="revokeClient(app.client_id)">Revoke<link class="rippleJS"></button>
+						<span class="title">{{ app.name }}</span>
+						<span>This application can:</span>
+						<ul>
+							<li v-for="scope in app.scopes">
+								{{ scope }}
+							</li>
+						</ul>
+						<span>Last used on <span>{{ app.date }}</span></span>
 					</li>
 				</ul>
 			</div>
@@ -195,7 +219,8 @@
 				:id="'input-' + name"
 				:class="{'has-content': value.length}"
 				:value="value"
-				:placeholder="placeholder" 
+				:placeholder="placeholder"
+				:autofocus="autofocus" 
 				v-on:input="updateValue(name, $event.target.value)"
 				v-on:focus="onInputFocus"
 				v-on:blur="onInputBlur" />
@@ -209,6 +234,7 @@
 	<script type="text/x-template" id="template-button-row">
 		<div class="button-row">
 			<span class="error" :class="{shown: error.length}">{{ error }}</span>
+			<slot name="secondary-button"></slot>
 			<button class="btn btn-primary" id="btn-update-name" v-on:click="update(click)">
 			{{ name }}
 			<link class="rippleJS">
@@ -221,17 +247,17 @@
 				<img class="user-image" :alt="'profile image of ' + user.firstname" :src="user.image" />
 			</div>
 			<div class="user-info flex">
-				<span class="name">{{ (user.firstname ? user.firstname + (user.familyname ? "\n" + user.familyname : '') : user.email) }}</span>
+				<span class="name">{{ (user.firstname ? user.firstname + (user.familyname ? " " + user.familyname : '') : user.email) }}</span>
 				<a v-on:click="logout">Sign out</a>
 			</div>
 		</div>
 	</script>
 	<script type="text/x-template" id="template-tfa-qr">
 		<div class="qr-editor flex-container fc-horizontal">
-			<div class="qr-container" v-if="!tfaEditorContent.alreadyEnabled">
+			<div class="qr-container" v-if="!tfaEnabled">
 				<img class="qr" :alt="tfaEditorContent.qr_secret" :src="tfaEditorContent.qr_image" />
 			</div>
-			<div class="instructions flex" v-if="!tfaEditorContent.alreadyEnabled">
+			<div class="instructions flex" v-if="!tfaEnabled">
 				Scan the QR code to the left or manually enter this code:
 				<pre>{{ tfaEditorContent.qr_secret }}</pre>
 				Then, enter the 6-digit authentication code below:
@@ -240,17 +266,24 @@
 					<button class="btn btn-primary" v-on:click="enableTfa">Submit</button>
 				</div>
 			</div>
-			<div class="instructions flex flex-container fc-horizontal" id="tfa-disable" v-if="tfaEditorContent.alreadyEnabled">
-				<span class="flex">Remove two-factor authentication from your account?</span>
-				<button class="btn btn-primary" v-on:click="disableTfa">Disable 2FA</button>
+			<div class="flex" id="tfa-disable" v-if="tfaEnabled" v-on:keyup.enter="disableTfa()">
+				<!-- <span class="flex">Remove two-factor authentication from your account?</span>
+				<button class="btn btn-primary" v-on:click="disableTfa">Disable 2FA</button> -->
+				<label>
+					<span>Enter your password</span>
+					<underlined-input autofocus name="tfa_password" type="password" :value="tfaEditorContent.tfa_password"></underlined-input>
+				</label>
+				<button-row name="Disable 2FA" :update="disableTfa" click="tfa_password" :error="tfaEditorContent.error"></button-row>
 			</div>
 		</div>
 	</script>
 	<script type="text/x-template" id="template-tfa-recovery">
 		<div class="qr-editor">
+			<span>If you lose access to your device, you can use one of the codes below in place of the 6-digit code.</span>
 			<ul>
-				<li v-for="code in tfaEditorContent.recovery_codes">{{ code.code }}</li>
+				<li v-for="code in tfaEditorContent.recovery_codes">{{ code }}</li>
 			</ul>
+			<button class="btn btn-clear" v-on:click="regenerateTfa" v-if="tfaEditorContent.tfa_password.length">Regenerate codes</button>
 		</div>
 	</script>
 	<script type="text/javascript" src="./js/account.bundle.js"></script>

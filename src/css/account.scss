@@ -162,6 +162,14 @@ header {
 			.error {
 				padding: 0 10px;
 				color: $color-red;
+				// @include ellipsis();
+
+				&.shown + button.hide-if-error {
+					display: none;
+				}
+			}
+			button {
+				float: initial !important;
 			}
 		}
 		h1 {
@@ -177,6 +185,31 @@ header {
 			&.has-subtitle {
 				margin-bottom: 0;
 				padding-bottom: 0;
+			}
+			span {
+				display: inline-block;
+				vertical-align: middle;
+				color: $text-dark-primary;
+			}
+			span.status {
+				display: inline-block;
+				vertical-align: middle;
+				margin: 0 6px;
+				height: 24px;
+				line-height: 24px;
+				background: $black-4;
+				color: $text-light-primary;
+				border-radius: 4px;
+				padding: 0 10px;
+				font-size: 0.85rem;
+				text-transform: uppercase;
+
+				&.verified {
+					background: $color-green;
+				}
+				&.unverified {
+					background: $color-red;
+				}
 			}
 		}
 		&#page-account h1 {
@@ -205,6 +238,7 @@ header {
 		.value {
 			line-height: 30px;
 			height: 30px;
+
 		}
 		.tfa-control {
 			height: 60px;
@@ -244,10 +278,13 @@ header {
 				height: auto;
 
 				.qr-editor {
-					display: flex;
+					display: block;
 					height: 180px;
 					line-height: initial;
 
+					&.flex-container {
+						display: flex;
+					}
 					.qr-container {
 						width: 180px;
 						height: 100%;
@@ -282,13 +319,19 @@ header {
 							// text-align: center;
 						}
 					}
+					& > span {
+						display: inline-block;
+						width: 100%;
+						flex: none;
+					}
 					ul {
-						margin: 0;
+						display: inline-block;
+						margin: 10px 0;
 						padding: 0;
 						width: 50%;
 						min-width: 270px;
-						height: 100%;
 						position: relative;
+						flex: none;
 
 						&:empty:before {
 							height: 100%;
@@ -373,65 +416,45 @@ header {
 
 				&:first-of-type {
 					color: $text-dark-primary;
+					padding-right: 4px;
 				}
 				&:last-of-type {
 					float: right;
+					padding-left: 4px;
 				}
 			}
 		}
 		#application-list li {
+			.title {
+				font-size: 1.1rem;
+				margin-bottom: 6px;
+			}
 			& > span {
 				&:first-of-type {
 					color: $text-dark-primary;
 				}
 			}
 		}
-	}
-}
-#app > .progress {
-	position: absolute;
-	display: inline-block;
-	top: 50px;
-	height: 0;
-	width: 100%;
-	background-color: $accent-3;
-	background-clip: padding-box;
-	margin: 0;
-	overflow: hidden;
-	transition: height .2s $transition,
-				top .2s $transition;
+		#application-list ul {
+			list-style: none;
+			margin: 0;
+			padding: 0;
 
-	&.shown {
-		top: 46px;
-		height: 4px;
-	}
-
-	&.shown .indeterminate {
-	  background-color: $accent-2;
-
-		&:before {
-			content: '';
-			position: absolute;
-			background-color: inherit;
-			top: 0;
-			left: 0;
-			bottom: 0;
-			will-change: left, right;
-			-webkit-animation: indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
-			animation: indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
-		}
-		&:after {
-			content: '';
-			position: absolute;
-			background-color: inherit;
-			top: 0;
-			left: 0;
-			bottom: 0;
-			will-change: left, right;
-			-webkit-animation: indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
-			animation: indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
-			-webkit-animation-delay: 1.15s;
-			animation-delay: 1.15s;
+			li {
+				position: relative;
+				padding: 6px 20px;
+				color: $text-dark-secondary;
+				font-size: 0.85rem;
+			}
+			li:before {
+				content: '';
+				position: absolute;
+				height: 1px;
+				width: 6px;
+				top: 13px;
+				left: 6px;
+				background: $text-dark-secondary;
+			}
 		}
 	}
 }

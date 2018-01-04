@@ -3,7 +3,8 @@ const Verimail = require('vendor/verimail.js');
 const verimail = new Verimail();
 const commonPasswords = require('vendor/rockyou-75.js');
 
-const API_ROOT = 'http://localhost/auth3/src/public/api/';
+//const API_ROOT = location.protocol + "//" + location.hostname + "/auth3/src/public/api/";
+const API_ROOT = "api/";
 const API_USER_EXISTS = 'exists/';
 const API_NEW_USER = 'users/new';
 

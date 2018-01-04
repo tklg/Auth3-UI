@@ -46,35 +46,49 @@ export default class Ajax {
 		var xhr = opts.xhr || new XMLHttpRequest();
 
 		var fd = null;
-		if (opts.data) {
+		var qs = '';
+		if (opts.data && opts.method.toLowerCase() != 'get') {
 			fd = new FormData();
 			for (let key in opts.data) fd.append(key, opts.data[key]);
+		} else if (opts.data) {
+			qs += '?';
+			let params = [];
+			for (let key in opts.data) {
+				params.push([key, opts.data[key]].join('='));
+			}
+			qs += params.join('&');
 		}
 
 		xhr.onload = () => {
 			if (xhr.status !== 200) return xhr.onerror();
 			var data = xhr.response;
-			if (opts.success) opts.success(data);
+			if (opts.success) opts.success(data, xhr);
 		}
 		xhr.onerror = () => {
 			var data = xhr.response;
 
 			// method not allowed
 			if (xhr.status === 405) {
-				if (opts.error) opts.error(data);
+				if (opts.error) opts.error(data, xhr);
 				return;
 			}
 
-			// if the access token is invalid, try to use the refresh token
-			var json = JSON.parse(data);
-			if (data && json.error === 'access_denied' && json.hint.includes('token') && json.hint.includes('invalid') && ajaxcfg.refresh_token) {
-				Ajax.refresh(opts);
-				return;
+			try {
+				// if the access token is invalid, try to use the refresh token
+				var json = JSON.parse(data);
+				if (json.error === 'access_denied' && json.hint.includes('token') && json.hint.includes('invalid') && ajaxcfg.refresh_token) {
+					Ajax.refresh(opts);
+					return;
+				} else if (json.error === 'access_denied' && json.hint.includes('token') && json.hint.includes('revoked')) {
+					if (ajaxcfg.revoked) ajaxcfg.revoked(data, xhr);
+					return;
+				}
+				if (opts.error) opts.error(data, xhr);
+			} catch (e) {
+				opts.error(data, xhr);
 			}
-
-			if (opts.error) opts.error(data);
 		}
-		xhr.open(opts.method || 'GET', opts.url || location.href);
+		xhr.open(opts.method || 'GET', opts.url + qs || location.href);
 
 		if (opts.headers) {
 			for (let key in opts.headers) xhr.setRequestHeader(key, opts.headers[key]);
@@ -84,14 +98,14 @@ export default class Ajax {
 		xhr.send(fd);
 	}
 	static refresh(opts) {
-		console.log("trying refresh token");
+		//console.log("trying refresh token");
 		var xhr = new XMLHttpRequest();
 
 		var fd = new FormData();
 		const OAUTH_TOKEN_REQUEST = {
 			grant_type: 'refresh_token',
 			refresh_token: ajaxcfg.refresh_token,
-			client_id: 'testclient',
+			client_id: 'auth3-c2f0ebded9',
 			client_secret: 1,
 			//scope: 'test',
 		};
@@ -110,7 +124,7 @@ export default class Ajax {
 		// if this fails, dont try again
 		xhr.onerror = () => {
 			var data = xhr.response;
-			if (opts.error) opts.error(data);
+			if (opts.error) opts.error(data, xhr);
 		}
 		xhr.open('POST', ajaxcfg.refresh_url);
 
@@ -129,5 +143,8 @@ export default class Ajax {
 	}
 	static onRefreshFail(func) {
 		ajaxcfg.refreshfail = func;
+	}
+	static onRevoked(func) {
+		ajaxcfg.revoked = func;
 	}
 }

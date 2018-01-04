@@ -2,12 +2,12 @@
 // moment would of course be better
 
 export default class DateFormat {
-	static format(date, fmt) {
-		let format = "MM d, yy at h:m:s";
+	static format(date, fmt, is24hour) {
+		let format = "MM d, yy at h:m:s a";
 		if (fmt) {
 			format = fmt;
 		}
-		return new _DateFormat(date, format).format();
+		return new _DateFormat(date, format, is24hour || false).format();
 	}
 };
 
@@ -15,7 +15,7 @@ let SHORT_DATES = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', '
 let LONG_DATES = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 class _DateFormat {
-	constructor(date, fmt) {
+	constructor(date, fmt, is24hour) {
 		if (!this.isValidFormat(fmt)) throw `Invalid format string: ${fmt}`;
 		if (date instanceof Date) date = date.toJSON().replace(/^(.*)T(.*)\.\d{3}Z$/, '$1 $2');
 		let reg = /^(\d{4})[- ](\d{2})[- ](\d{2}) (\d{2})[: ](\d{2})(?:[: ](\d{2}))?$/;
@@ -28,13 +28,18 @@ class _DateFormat {
 			hour: parts[4],
 			minute: parts[5],
 			second: parts[6] || null,
+			ampm: '',
+		}
+		data.ampm = data.hour > 12 || (data.hour == 12 && data.minute > 0) ? 'pm' : 'am';
+		if (!is24hour) {
+			data.hour = data.hour > 12 ? data.hour - 12 : data.hour;
 		}
 		this.data = data;
 		this.str = fmt;
 	}
 	isValidFormat(fmt) {
 		return fmt.split(' ').reduce((a, x) => {
-			return a || /(?:d|j|M{1,2}|y{1,2}|h|m|s)/.test(x);
+			return a || /(?:d|j|M{1,2}|y{1,2}|h|m|s|[aA])/.test(x);
 		}, false);
 	}
 	format() {
@@ -63,10 +68,15 @@ class _DateFormat {
 				case 'second':
 					this.replace('s', data[what]);
 					break;
+				case 'ampm':
+					this.replace('a', data[what]);
+					this.replace('A', data[what].toUpperCase());
+					break;
 			}
 		}
 		return this.str;
 	}
+	// use a tokenizer instead of this thing
 	replace(find, repl) {
 		let reg = new RegExp('(.*\\W|^)' + find + '(\\W.*|$)', 'g');
 		this.str = this.str.replace(reg, `$1${repl}$2`);

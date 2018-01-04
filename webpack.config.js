@@ -1,6 +1,10 @@
 const webpack = require('webpack');
 var node_env = (process.env.NODE_ENV || 'development').trim();
 var is_dev = node_env == 'development';
+
+var dest = '/build/js';
+dest = '/../auth3/src/public/js'
+
 module.exports = {
     resolve: {
         //root: __dirname,
@@ -14,11 +18,12 @@ module.exports = {
         signup: './src/js/signup.js',
         forgot: './src/js/forgot.js',
         authorize: './src/js/authorize.js',
-        account: './src/js/account.js'
+        account: './src/js/account.js',
+        recover: './src/js/recover.js'
     },
     output: {
         filename: '[name].bundle.js',
-        path: __dirname + '/build/js'
+        path: __dirname + dest
     },
     /*rules: [
         {

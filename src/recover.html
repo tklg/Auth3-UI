@@ -5,9 +5,9 @@
 		<meta author="tkluge" />
 		<meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, minimum-scale=1, user-scalable=no">
 		<link href='https://fonts.googleapis.com/css?family=Roboto:300,400' rel='stylesheet' type='text/css'>
-		<link rel="stylesheet" type="text/css" href="./css/forgot.css">
+		<link rel="stylesheet" type="text/css" href="./css/recover.css">
 		<meta name="theme-color" content="#225378">
-		<title>Forgot</title>
+		<title>Recover</title>
 	</head>
 	<body>
 		<div class="bg-panel"></div>
@@ -18,26 +18,35 @@
 			  	</div>
 				<section class="input-carousel">
 					<div class="carousel-container" id="carousel-container" data-offset="0">
-
 						<form class="carousel-item" id="form-1">
 							<header class="modal-header">
-								<h1>Forgot password</h1>
+								<h1>Reset password</h1>
+								<h2 class="subtitle">For account: test@test.test</h2>
 							</header>
 							<div class="underlined-input">
-								<input type="email" name="email" id="email-input" />
+								<input type="password" name="password" id="password-input" />
 								<div class="reacts-to">
-									<label class="input-placeholder">Enter your recovery email</label>
+									<label class="input-placeholder">Set a password</label>
 									<div class="input-underline">
 										<div class="input-underline-fill"></div>
 									</div>
 								</div>
 							</div>
-							<span class="carousel-input-error" id="email-error">&emsp;</span>
-							<div id="recaptcha" class="g-recaptcha" data-sitekey="6LdxLCcUAAAAAP8ZPgCUiGy_eY_AzLIJgLt3BSFD" data-size="invisible" data-bind="btn-finish" data-callback="finishRecovery"></div>
+							<span class="carousel-input-error" id="password-error">&emsp;</span>
+							<div class="underlined-input">
+								<input type="password" name="password2" id="password2-input" />
+								<div class="reacts-to">
+									<label class="input-placeholder">Confirm password</label>
+									<div class="input-underline">
+										<div class="input-underline-fill"></div>
+									</div>
+								</div>
+							</div>
+							<span class="carousel-input-error" id="password2-error">&emsp;</span>
 							<div class="button-row">
 								<a href="./">Sign in</a>
 								<button class="btn btn-primary" id="btn-finish">
-								Send email
+								Reset
 								<link class="rippleJS">
 								</button>
 							</div>
@@ -53,5 +62,5 @@
 		</footer>
 	</body>
 	<script src='https://www.google.com/recaptcha/api.js'></script>
-	<script type="text/javascript" src="./js/forgot.bundle.js"></script>
+	<script type="text/javascript" src="./js/recover.bundle.js"></script>
 </html>

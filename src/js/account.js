@@ -4,8 +4,12 @@ import Vuex from 'vuex';
 Vue.use(Vuex);
 import Ajax from './lib/ajax.js';
 import DateFormat from './lib/DateFormat.js';
+import Scopes from './lib/Scopes.js';
 const Verimail = require('vendor/verimail.js');
 const verimail = new Verimail();
+
+//const API_ROOT = location.protocol + "//" + location.hostname + "/auth3/src/public/api/";
+const API_ROOT = "api/";
 
 Vue.component('page-header', {
 	template: '#template-header'
@@ -28,17 +32,14 @@ Vue.component('content-account', {
 		'user',
 		'update',
 		'error',
+		'sendVerificationEmail',
 	],
-	methods: {
-		/*update: function(what) {
-			console.log(what);
-		},*/
-	},
 });
 Vue.component('content-security', {
 	template: '#template-content-security',
 	props: [
 		'activePage',
+		'update',
 		'userSecurity',
 		'revokeSession',
 		'tfaEditing',
@@ -46,6 +47,7 @@ Vue.component('content-security', {
 		'toggleTfaEditing',
 		'enableTfa',
 		'disableTfa',
+		'regenerateTfa',
 	],
 });
 Vue.component('content-applications', {
@@ -53,6 +55,7 @@ Vue.component('content-applications', {
 	props: [
 		'activePage',
 		'userApplications',
+		'revokeClient',
 	],
 });
 Vue.component('underlined-input', {
@@ -71,6 +74,7 @@ Vue.component('underlined-input', {
 			type: String,
 			default: '',
 		},
+		autofocus: null,
 	},
 	data: function() {
 		return {
@@ -84,7 +88,7 @@ Vue.component('underlined-input', {
 	methods: {
 		updateValue: function(what, val) {
 			//this.$emit('input', val);
-			if (['authcode', 'qr-secret', 'qr-image'].includes(what)) {
+			if (['authcode', 'qr-secret', 'qr-image', 'tfa_password'].includes(what)) {
 				store.commit('setTFAData', {[what]: val});
 			} else {
 				store.commit('setUserData', {[what]: val});
@@ -123,6 +127,7 @@ Vue.component('tfa-qr-editor', {
 	template: '#template-tfa-qr',
 	props: {
 		tfaEditorContent: null,
+		tfaEnabled: null,
 		enableTfa: null,
 		disableTfa: null,
 	},
@@ -131,6 +136,7 @@ Vue.component('tfa-recovery', {
 	template: '#template-tfa-recovery',
 	props: {
 		tfaEditorContent: null,
+		regenerateTfa: null,
 	},
 });
 var store = new Vuex.Store({
@@ -162,6 +168,7 @@ var store = new Vuex.Store({
 	  	},
 	  	activePage: 0,
 	  	loading: false,
+	  	scrollPos: 0,
 	  	error: {
 	  		name: '',
 	  		email: '',
@@ -177,12 +184,12 @@ var store = new Vuex.Store({
 	  	},
 	  	tfaEditing: 0,
 	  	tfaEditorContent: {
-	  		error: null,
+	  		error: '',
 	  		authcode: '',
+	  		tfa_password: '',
 	  		qr_image: 'https://placehold.it/180x180',
 	  		qr_secret: 'Generating secret...',
 	  		recovery_codes: [],
-	  		alreadyEnabled: false,
 	  	},
 	},
 	mutations: {
@@ -207,7 +214,7 @@ var store = new Vuex.Store({
   					return x;
   				});
   				else if (key === 'history') state.userSecurity[key] = data[key].map(x => {
-  					x.time = DateFormat.format(x.time, 'j-d-y at h:m');
+  					x.time = DateFormat.format(x.time, 'j-d-y at h:m', true);
   					return x;
   				});
   				else state.userSecurity[key] = data[key] || '';
@@ -234,6 +241,9 @@ var store = new Vuex.Store({
 		setTfaEditing(state, data) {
 			state.tfaEditing = data;
 		},
+		setScrollPos(state, data) {
+			state.scrollPos = data;
+		}
 	},
 });
 var app = new Vue({
@@ -245,8 +255,9 @@ var app = new Vue({
   			store.commit('changeActivePage', id);
   		},
   		update: function(what) {
+  			let _this = this;
 			var opts = {
-				url: 'http://localhost/auth3/src/public/api/user/info',
+				url: API_ROOT + 'user/info',
 				method: 'POST',
 			};
 			switch (what) {
@@ -334,6 +345,8 @@ var app = new Vue({
 				success: function(data) {
 					console.log(data);
 					store.commit('setLoading', false);
+					_this.fetchAccountData();
+
 				},
 				error: function(data) {
 					console.log(data);
@@ -347,11 +360,12 @@ var app = new Vue({
 			let _this = this;
 			store.commit('setLoading', true);
 			Ajax.delete({
-  				url: 'http://localhost/auth3/src/public/api/token/' + id,
+  				url: API_ROOT + 'token/' + id,
   				success: function(data) {
   					store.commit('setLoading', false);
   					let obj = JSON.parse(data);
   					_this.fetchSecurityData();
+  					_this.fetchApplicationData();
   				},
   				error: function(data) {
   					store.commit('setLoading', false);
@@ -359,11 +373,27 @@ var app = new Vue({
   				}
   			});
 		},
+		revokeClient: function(id) {
+			let _this = this;
+			store.commit('setLoading', true);
+			Ajax.delete({
+  				url: API_ROOT + 'client_token/' + id,
+  				success: function(data) {
+  					store.commit('setLoading', false);
+  					let obj = JSON.parse(data);
+  					_this.fetchSecurityData();
+  					_this.fetchApplicationData();
+  				},
+  				error: function(data) {
+  					store.commit('setLoading', false);
+  				}
+  			});
+		},
   		fetchAccountData: function(cascade) {
   			let _this = this;
   			store.commit('setLoading', true);
   		  	Ajax.get({
-  				url: 'http://localhost/auth3/src/public/api/user/info',
+  				url: API_ROOT + 'user/info',
   				success: function(data) {
   					store.commit('setLoading', false);
   					let obj = JSON.parse(data);
@@ -380,7 +410,7 @@ var app = new Vue({
   			let _this = this;
   			store.commit('setLoading', true);
   			Ajax.get({
-  				url: 'http://localhost/auth3/src/public/api/user/security',
+  				url: API_ROOT + 'user/security',
   				success: function(data) {
   					store.commit('setLoading', false);
   					let obj = JSON.parse(data);
@@ -396,10 +426,16 @@ var app = new Vue({
   		fetchApplicationData: function(cascade) {
   			store.commit('setLoading', true);
   			Ajax.get({
-  				url: 'http://localhost/auth3/src/public/api/user/applications',
+  				url: API_ROOT + 'user/applications',
   				success: function(data) {
   					store.commit('setLoading', false);
   					var obj = JSON.parse(data);
+  					obj.applications = obj.applications.map(app => {
+  						app.scopes = app.scopes.split(',').map(scope => {
+  							return Scopes.getDescription(scope);
+  						});
+  						return app;
+  					});
   					store.commit('setUserApplications', obj);
   				},
   				error: function(data) {
@@ -411,7 +447,7 @@ var app = new Vue({
   		logout: function() {
   			store.commit('setLoading', true);
   			Ajax.get({
-  				url: 'http://localhost/auth3/src/public/api/logout',
+  				url: API_ROOT + 'logout',
   				success: function(data) {
   					store.commit('setLoading', false);
   					localStorage.removeItem('auth3_token');
@@ -429,7 +465,7 @@ var app = new Vue({
   				if (gen) {
   					store.commit('setTfaEditing', 0);
   					store.commit('setTFAData', {
-	  					error: null,
+	  					error: '',
 				  		authcode: '',
 				  		'qr_image': 'https://placehold.it/180x180',
 				  		'qr_secret': 'Generating secret...',
@@ -441,14 +477,14 @@ var app = new Vue({
   				if (gen) {
 		  			store.commit('setLoading', true);
 		  			Ajax.get({
-		  				url: 'http://localhost/auth3/src/public/api/user/security/twofactor?size=180',
+		  				url: API_ROOT + 'user/security/twofactor?size=180',
 		  				success: function(data) {
 		  					store.commit('setLoading', false);
 		  					var obj = JSON.parse(data);
   							store.commit('setTfaEditing', 1);
   							if (obj.error && obj.error.includes('already')) {
-  								store.commit('setTFAData', {
-  									alreadyEnabled: true,
+  								store.commit('setUserSecurity', {
+  									hasTwoFactor: true,
   								});
   							} else {
 		  						store.commit('setTFAData', obj);
@@ -467,18 +503,24 @@ var app = new Vue({
   			let _this = this;
 		  	store.commit('setLoading', true);
   			Ajax.post({
-		  		url: 'http://localhost/auth3/src/public/api/user/security/twofactor',
+		  		url: API_ROOT + 'user/security/twofactor/enable',
 		  		data: {
 		  			authcode: store.state.tfaEditorContent.authcode,
 		  		},
 		  		success: function(data) {
 		  			store.commit('setLoading', false);
-  					_this.showTfaCodes();
+  					//_this.showTfaCodes();
 		  			var obj = JSON.parse(data);
+		  			obj.recovery_codes = obj.recovery_codes.map(x => {
+		  				x = x.replace(/(.{5})(.{5})/, '$1-$2');
+		  				return x;
+		  			});
 		  			store.commit('setTFAData', obj);
 		  			store.commit('setUserSecurity', {
 		  				hasTwoFactor: true,
 		  			});
+		  			store.commit('setTfaEditing', 3);
+		  			_this.fetchSecurityData();
 		  		},
 		  		error: function(data) {
 		  			store.commit('setLoading', false);
@@ -487,9 +529,13 @@ var app = new Vue({
   		},
   		disableTfa: function() {
   			let _this = this;
+  			let password = store.state.tfaEditorContent.tfa_password;
 		  	store.commit('setLoading', true);
-  			Ajax.delete({
-		  		url: 'http://localhost/auth3/src/public/api/user/security/twofactor',
+  			Ajax.post({
+		  		url: API_ROOT + 'user/security/twofactor/disable',
+		  		data: {
+		  			password: password,
+		  		},
 		  		success: function(data) {
 		  			store.commit('setLoading', false);
 		  			var obj = JSON.parse(data);
@@ -503,33 +549,104 @@ var app = new Vue({
 		  				hasTwoFactor: false,
 		  			});
 		  			store.commit('setTfaEditing', 0);
+		  			_this.fetchSecurityData();
 		  		},
 		  		error: function(data) {
 		  			store.commit('setLoading', false);
+		  			let error = JSON.parse(data).error.toString() || 'Unknown error';
+		  			store.commit('setTFAData', {
+		  				error: error
+		  			});
 		  		}
 		  	});
   		},
-  		showTfaCodes: function() {
-  			Ajax.get({
-		  		url: 'http://localhost/auth3/src/public/api/user/security/twofactor/codes',
+  		regenerateTfa: function() {
+  			let password = store.state.tfaEditorContent.tfa_password;
+  			store.commit('setLoading', true);
+  			Ajax.post({
+		  		url: API_ROOT + 'user/security/twofactor/codes/regen',
+		  		data: {
+		  			password: password,
+		  		},
 		  		success: function(data) {
 		  			store.commit('setLoading', false);
 		  			var obj = JSON.parse(data);
+		  			obj.recovery_codes = obj.recovery_codes.map(x => {
+		  				x = x.replace(/(.{5})(.{5})/, '$1-$2');
+		  				return x;
+		  			})
 		  			store.commit('setTFAData', obj);
-		  			store.commit('setTfaEditing', 2);
 		  		},
 		  		error: function(data) {
 		  			store.commit('setLoading', false);
+		  			store.commit('setTfaEditing', 2);
 		  		}
 		  	});
-  		}
+  		},
+  		showTfaCodes: function(obj) {
+		  	store.commit('setTfaEditing', !store.state.tfaEditorContent.tfa_password.length ? 2 : 3);
+  		},
+  		fetchTfaCodes: function() {
+  			let password = store.state.tfaEditorContent.tfa_password;
+  			// post because password
+  			Ajax.post({
+		  		url: API_ROOT + 'user/security/twofactor/codes',
+		  		data: {
+		  			password: password,
+		  		},
+		  		success: function(data) {
+		  			store.commit('setLoading', false);
+		  			var obj = JSON.parse(data);
+		  			obj.recovery_codes = obj.recovery_codes.map(x => {
+		  				console.log(x);
+		  				x = x.replace(/(.{5})(.{5})/, '$1-$2');
+		  				return x;
+		  			})
+		  			obj.error = '';
+		  			store.commit('setTFAData', obj);
+		  			store.commit('setTfaEditing', 3);
+		  		},
+		  		error: function(data) {
+		  			let error = JSON.parse(data).error.toString() || 'Unknown error';
+		  			store.commit('setTfaEditing', 2);
+		  			store.commit('setLoading', false);
+		  			store.commit('setTFAData', {
+		  				error: error
+		  			});
+		  		}
+		  	});
+  		},
+  		sendVerificationEmail: function() {
+  			store.commit('setLoading', true);
+  			Ajax.post({
+		  		url: API_ROOT + 'sendverification',
+		  		success: function(data) {
+		  			store.commit('setLoading', false);
+		  			var obj = JSON.parse(data);
+		  			store.commit('setError', {
+		  				email: 'Email sent',
+		  			});
+		  		},
+		  		error: function(data) {
+		  			store.commit('setLoading', false);
+		  			var obj = JSON.parse(data);
+		  			store.commit('setError', {
+		  				email: obj.error,
+		  			});
+		  		}
+		  	});
+  		},
+  		handleScroll: function(e) {
+  			let pos = window.scrollY;
+  			store.commit('setScrollPos', pos);
+  		},
   	},
   	created: function() {
   		var obj = JSON.parse(window.localStorage.getItem('auth3_token'));
 		if (!obj || !obj.access_token) {
 			var loc = document.location;
 			var currentUrl = loc.pathname;
-			var newUrl = loc.origin + '/?return=' + currentUrl;
+			var newUrl = loc.origin + '/?return=' + encodeURIComponent(currentUrl);
 			document.location.replace(newUrl);
 			return;
 		}
@@ -538,7 +655,7 @@ var app = new Vue({
   		Ajax.setTokenData({
   			access_token: token, 
   			refresh_token: refresh,
-  			refresh_url: 'http://localhost/auth3/src/public/api/token',
+  			refresh_url: API_ROOT + 'token',
   		});
   		Ajax.onRefresh(function(data) {
   			var json = JSON.parse(data);
@@ -547,7 +664,16 @@ var app = new Vue({
   				access_token: json.access_token,
   				refresh_token: json.refresh_token,
   			});
-  		})
+  		});
+  		Ajax.onRevoked(function(data) {
+			var newUrl = location.origin + '/?return=' + encodeURIComponent(location.pathname);
+			document.location.replace(newUrl);
+			return;
+  		});
   		this.fetchAccountData(true);
+  		window.addEventListener('scroll', this.handleScroll);
   	},
+  	destroyed: function() {
+  		window.removeEventListener('scroll', this.handleScroll);
+  	}
 });

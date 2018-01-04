@@ -4,13 +4,14 @@
 
 .authorize {
 	position: relative;
-	height: 500px;
+	min-height: 400px;
+	height: 400px;
 	width: 450px;
 	background: $background-2;
 	box-shadow: $shadow-0;
 	// border-radius: 3px;
 	z-index: 1;
-	padding: 40px 0;
+	padding: 40px 0 20px 0;
 	overflow: hidden;
 
 	.modal-header {
@@ -49,7 +50,7 @@
 					margin: 0;
 					font-weight: normal;
 					font-size: 1rem;
-					height: 50px;
+					height: 30px;
 					color: $black-3;
 				}
 				.application-name {
@@ -65,9 +66,19 @@
 					margin-bottom: 10px;
 
 					.scope {
+						position: relative;
 						line-height: 40px;
-						padding: 0 10px;
+						padding: 0 10px 0 20px;
 						border-bottom: 1px solid $black-4;
+						&:before {
+							content: '';
+							position: absolute;
+							height: 1px;
+							width: 6px;
+							top: 19px;
+							left: 6px;
+							background: $text-dark-secondary;
+						}
 					}
 					.scope:last-of-type {
 						border-bottom: none;
@@ -93,6 +104,10 @@
 		}
 	}
 	.button-row {
+		position: absolute;
+		bottom: 10px;
+		left: 0px;
+		padding: 0 20px;
 		height: 50px;
 		line-height: 50px;
 		width: 100%;

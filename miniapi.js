@@ -44,9 +44,15 @@ const miniapi = [
 		}
 	},
 	{
-		route: '/authorize',
+		route: '/recover',
 		handle: function(req, res, next) {
             req.url += '.html';
+         	next();
+		}
+	},
+	{
+		route: '/authorize.html?response_type=code&client_id=auth3-c2f0ebded9&scope=user.all',
+		handle: function(req, res, next) {
          	next();
 		}
 	},
