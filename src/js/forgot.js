@@ -1,5 +1,10 @@
 require('vanilla-ripplejs');
 const _inputs = document.querySelectorAll('.underlined-input input');
+
+//const API_ROOT = location.protocol + "//" + location.hostname + "/auth3/src/public/api/";
+const API_ROOT = "api/";
+const API_USER_RECOVER = 'user/recover';
+
 function onInputFocus(e) {
 	var parent = e.target.parentElement;
 	parent.classList.add('focusing');
@@ -29,7 +34,7 @@ for (var i = 0; i < _inputs.length; i++) {
 /*const btnNext = document.getElementById('btn-next');
 const btnFinish = document.getElementById('btn-finish');
 const btnReset = document.getElementById('btn-reset');*/
-//const carousel = document.getElementById('carousel-container');
+const carousel = document.getElementById('carousel-container');
 const modal = document.getElementById('modal');
 const errorBox = {
 	email: document.getElementById('email-error'),
@@ -72,6 +77,7 @@ function finishRecovery(e) {
 				}
 			} else {
 				console.info('Done');
+				modal.classList.remove('working');
 				done();
 			}
 		} else {
@@ -94,11 +100,11 @@ function finishRecovery(e) {
 			errorBox.email.innerText = `Request failed (${xhr.status})`;
 		}	
 	}
-	xhr.open('POST', 'api/users/recover');
+	xhr.open('POST', API_ROOT + API_USER_RECOVER);
 	xhr.send(fd);
 }
 window.finishRecovery = finishRecovery;
 
 function done() {
-
+	carousel.setAttribute('data-offset', 1);
 }

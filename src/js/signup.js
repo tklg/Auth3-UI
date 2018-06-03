@@ -6,7 +6,7 @@ const commonPasswords = require('vendor/rockyou-75.js');
 //const API_ROOT = location.protocol + "//" + location.hostname + "/auth3/src/public/api/";
 const API_ROOT = "api/";
 const API_USER_EXISTS = 'exists/';
-const API_NEW_USER = 'users/new';
+const API_NEW_USER = 'user/new';
 
 const _inputs = document.querySelectorAll('.underlined-input input');
 function onInputFocus(e) {

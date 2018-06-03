@@ -5,23 +5,50 @@
 		<meta author="tkluge" />
 		<meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, minimum-scale=1, user-scalable=no">
 		<link href='https://fonts.googleapis.com/css?family=Roboto:300,400' rel='stylesheet' type='text/css'>
-		<link rel="stylesheet" type="text/css" href="./css/recover.css">
+		<link rel="stylesheet" type="text/css" href="./css/signup.css">
 		<meta name="theme-color" content="#225378">
-		<title>Recover</title>
+		<title>Sign up</title>
 	</head>
 	<body>
 		<div class="bg-panel"></div>
 		<div id="root">
-			<div class="forgot" id="modal">
+			<div class="signup" id="modal">
 				<div class="progress">
 			    	<div class="indeterminate"></div>
 			  	</div>
 				<section class="input-carousel">
 					<div class="carousel-container" id="carousel-container" data-offset="0">
-						<form class="carousel-item" id="form-1">
+
+						<div class="carousel-item" id="form-1">
 							<header class="modal-header">
-								<h1>Reset password</h1>
-								<h2 class="subtitle">For account: test@test.test</h2>
+								<h1>New account</h1>
+							</header>
+							<div class="underlined-input">
+								<input type="email" name="email" id="email-input" />
+								<div class="reacts-to">
+									<label class="input-placeholder">Enter your email</label>
+									<div class="input-underline">
+										<div class="input-underline-fill"></div>
+									</div>
+								</div>
+							</div>
+							<span class="carousel-input-error" id="email-error">&emsp;</span>
+							<div class="button-row">
+								<a href="./">Sign in</a>
+								<button class="btn btn-primary" id="btn-next">
+								Next
+								<link class="rippleJS">
+								</button>
+							</div>
+							<div class="footer-row">
+								<!-- or
+								<a href="#">Sign up with your Google account</a> -->
+							</div>
+						</div>
+
+						<form class="carousel-item" id="form-2">
+							<header class="modal-header">
+								<h1>Set a password</h1>
 							</header>
 							<div class="underlined-input">
 								<input type="password" name="password" id="password-input" />
@@ -43,10 +70,10 @@
 								</div>
 							</div>
 							<span class="carousel-input-error" id="password2-error">&emsp;</span>
+							<div id="recaptcha" class="g-recaptcha" data-sitekey="<?= $captchaSiteKey ?>" data-size="invisible" data-bind="btn-finish" data-callback="finishSignup"></div>
 							<div class="button-row">
-								<a href="./">Sign in</a>
 								<button class="btn btn-primary" id="btn-finish">
-								Reset
+								Sign up
 								<link class="rippleJS">
 								</button>
 							</div>
@@ -62,5 +89,5 @@
 		</footer>
 	</body>
 	<script src='https://www.google.com/recaptcha/api.js'></script>
-	<script type="text/javascript" src="./js/recover.bundle.js"></script>
+	<script type="text/javascript" src="./js/signup.bundle.js"></script>
 </html>

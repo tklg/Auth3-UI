@@ -2,8 +2,8 @@ require('vanilla-ripplejs');
 import Ajax from './lib/ajax.js';
 import Scopes from './lib/Scopes.js';
 
-//const API_ROOT = location.protocol + "//" + location.hostname + "/auth3/src/public/api/";
-const API_ROOT = "api/";
+const API_ROOT = location.protocol + "//" + location.hostname + "/auth3/src/public/api/";
+//const API_ROOT = "api/";
 let sessionId = '';
 
 // require that user log in first

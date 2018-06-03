@@ -12,7 +12,11 @@ const verimail = new Verimail();
 const API_ROOT = "api/";
 
 Vue.component('page-header', {
-	template: '#template-header'
+	template: '#template-header',
+	props: [
+		'mobileMenuActive',
+		'toggleMobileMenu',
+	],
 });
 Vue.component('page-body', {
 	template: '#template-body'
@@ -23,6 +27,7 @@ Vue.component('left-nav', {
 		'pages',
 		'selectPage',
 		'activePage',
+		'mobileMenuActive',
 	],
 });
 Vue.component('content-account', {
@@ -169,6 +174,7 @@ var store = new Vuex.Store({
 	  	activePage: 0,
 	  	loading: false,
 	  	scrollPos: 0,
+	  	mobileMenuActive: false,
 	  	error: {
 	  		name: '',
 	  		email: '',
@@ -195,6 +201,9 @@ var store = new Vuex.Store({
 	mutations: {
 		changeActivePage(state, id) {
 			state.activePage = id;
+		},
+		setMobileMenu(state, active) {
+			state.mobileMenuActive = active;
 		},
 		setUserData(state, data) {
 			for (var key in data) {
@@ -251,8 +260,13 @@ var app = new Vue({
   	data: store.state,
   	methods: {
   		selectPage: function(id) {
-  			//this.activePage = id;
   			store.commit('changeActivePage', id);
+  			if (store.state.mobileMenuActive) {
+  				this.toggleMobileMenu();
+  			}
+  		},
+  		toggleMobileMenu: function() {
+  			store.commit('setMobileMenu', !store.state.mobileMenuActive);
   		},
   		update: function(what) {
   			let _this = this;
@@ -487,6 +501,7 @@ var app = new Vue({
   									hasTwoFactor: true,
   								});
   							} else {
+  								obj.qr_secret = obj.qr_secret.replace(/(.{4})(.{4})(.{4})(.{4})/, '$1 $2 $3 $4');
 		  						store.commit('setTFAData', obj);
   							}
 		  				},
@@ -515,6 +530,7 @@ var app = new Vue({
 		  				x = x.replace(/(.{5})(.{5})/, '$1-$2');
 		  				return x;
 		  			});
+		  			obj.error = '';
 		  			store.commit('setTFAData', obj);
 		  			store.commit('setUserSecurity', {
 		  				hasTwoFactor: true,
@@ -524,6 +540,9 @@ var app = new Vue({
 		  		},
 		  		error: function(data) {
 		  			store.commit('setLoading', false);
+		  			store.commit('setTFAData', {
+		  				error: JSON.parse(data).error
+		  			});
 		  		}
 		  	});
   		},
@@ -562,6 +581,10 @@ var app = new Vue({
   		},
   		regenerateTfa: function() {
   			let password = store.state.tfaEditorContent.tfa_password;
+  			if (!password) {
+  				store.commit('setTfaEditing', 2);
+  				return;
+  			}
   			store.commit('setLoading', true);
   			Ajax.post({
 		  		url: API_ROOT + 'user/security/twofactor/codes/regen',

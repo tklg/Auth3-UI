@@ -325,8 +325,13 @@ a:hover {
 		}
 	}
 }
+#modal > .progress {
+	top: 0;
+	transition: height .2s $transition;
+}
 #modal.working > .progress {
 	top: 0;
+	height: 4px;
 
 	& > .indeterminate {
 		background-color: $accent-2;

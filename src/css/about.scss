@@ -1,0 +1,105 @@
+@import 'rt-raleway';
+@import 'materialdesignicons';
+@import 'styles';
+
+$mobile: "(max-width: 600px)";
+
+.flex-container {
+	display: flex;
+
+	&.fc-vertical {
+		flex-direction: column;
+	}
+	&.fc-horizontal {
+		flex-direction: row;
+	}
+}
+.flex {
+	flex: 1;
+}
+a {
+	color: $accent-2;
+	text-decoration: none;
+	cursor: pointer;
+
+	&:hover {
+		text-decoration: underline;
+	}
+}
+.bg-panel {
+	position: fixed;
+	z-index: 0;
+}
+header {
+	height: 50px;
+	line-height: 50px;
+	width: 100%;
+	background: $accent-1;
+	color: $text-light-primary;
+	z-index: 1;
+
+	#title {
+		margin: 0 20px;
+		@media #{$mobile} {
+			margin-left: 0;
+		}
+		a {
+			color: $text-light-primary;
+			text-decoration: none !important;
+		}
+	}
+	nav {
+		float: right;
+
+		a {
+			color: $text-light-secondary;
+			margin-right: 20px;
+
+			&:hover {
+				text-decoration: none !important;
+				color: $text-light-primary;
+			}
+		}
+	}
+}
+.width-restrict {
+	max-width: 800px;
+	width: 100%;
+	margin: 0 auto;
+}
+main {
+	z-index: 1;
+}
+main .content {
+	background: white;
+	margin-bottom: 150px;
+	border-radius: 3px;
+	width: 100%;
+	min-height: 70%;
+	padding: 40px 30px 100px 30px;
+	box-shadow: $shadow-2;
+	@media #{$mobile} {
+		padding: 20px 0 100px 0;
+	}
+
+	h1.title {
+		font-weight: normal;
+		margin: 0;
+		font-size: 32px;
+	}
+	h2.subtitle {
+		font-weight: normal;
+		margin: 0;
+		font-size: 16px;
+		color: $text-dark-secondary;
+		font-style: italic;
+		margin-bottom: 30px;
+	}
+	h2 {
+		font-weight: normal;
+	}
+}
+.footer {
+	position: relative;
+	width: calc(100% - 20px);
+}

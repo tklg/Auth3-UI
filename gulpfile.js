@@ -43,11 +43,11 @@ function css(fileName) {
         .pipe(gulpif(!argv.single, browserSync.stream()));
 }
 gulp.task('css', function() {
-    let files = ['login', 'signup', 'forgot', 'authorize', 'account', 'recover'];
+    let files = ['login', 'signup', 'forgot', 'authorize', 'account', 'recover', 'about'];
     files.map(f => css(f)());
 });
 gulp.task('html', function() {
-    return gulp.src("src/*.html")
+    return gulp.src("src/*.*html")
         .pipe(gulp.dest(dest.html))
 });
 gulp.task('html-watch', ['html'], function (done) {
@@ -74,7 +74,7 @@ gulp.task('serve', function() {
     });
     gulp.watch('src/js/**', ['js-watch']);
     gulp.watch('src/css/**', ['css']);
-    gulp.watch('src/*.html', ['html-watch']);
+    gulp.watch('src/*.*html', ['html-watch']);
 })
 /*gulp.task('watch', function() {
     refresh.listen();

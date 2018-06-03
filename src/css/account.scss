@@ -2,8 +2,15 @@
 @import 'materialdesignicons';
 @import 'styles';
 
+$mobile: "(max-width: 600px)";
+
 #app {
 	position: relative;
+}
+.scroll-disabled-mobile {
+	@media #{$mobile} {
+		overflow: hidden;
+	}
 }
 .flex-container {
 	display: flex;
@@ -39,9 +46,31 @@ header {
 	color: $text-light-primary;
 	box-shadow: $shadow-0;
 
+	button {
+		display: none;
+		@media #{$mobile} {
+			display: inline-block;
+			height: 50px;
+			width: 50px;
+			margin: 0 10px;
+			background: transparent;
+			border: none;
+			outline: none;
+
+			svg {
+				vertical-align: middle;
+
+				path {
+					fill: $text-light-primary;
+				}
+			}
+		}
+	}
 	#title {
 		margin: 0 20px;
-
+		@media #{$mobile} {
+			margin-left: 0;
+		}
 		.brand {
 			// color: $accent-3;
 		}
@@ -57,90 +86,157 @@ header {
 }
 .main .content {
 	height: 100%;
-	padding: 20px;
-	padding-bottom: 100px;
+	padding: 20px 20px 100px 20px;
+	position: relative;
+	@media #{$mobile} {
+		padding: 20px 0 100px 0;
+	}
 
 	.nav.nav-side {
 		width: 200px;
-		// padding-right: 10px;
+		@media #{$mobile} {
+			position: fixed;
+			top: 50px;
+			left: -100%;
+			width: 100%;
+			height: 100%;
+			z-index: 1;
+			// display: none;
+		}
+		.container {
+			will-change: left;
+			transition: left .3s $transition;
+			@media #{$mobile} {
+				position: absolute;
+				top: 0;
+				left: -300px;
+				height: 100%;
+				width: 300px;
+				background: $accent-1;
+				color: $text-light-primary;
+				z-index: 2;
+				box-shadow: $shadow-1;
+			}
 
-		ul {
-			margin: 0;
-			padding: 0;
+			ul {
+				margin: 0;
+				padding: 0;
 
-			li {
-				height: 36px;
-				line-height: 36px;
-				list-style: none;
-				padding: 0 10px;
-				border-bottom: 1px solid $black-4;
-				cursor: pointer;
-				transition: background .15s $transition;
-				user-select: none;
-				position: relative;
-				// color: $text-dark-secondary;
-				color: $accent-2;
-
-				&:hover {
-					background: $black-5;
-				}
-				&:last-of-type {
-					border-bottom: none;
-				}
-				&.selected {
-					color: $text-dark-primary;
-
-					&:before {
-						content: '';
-						position: absolute;
-						height: 100%;
-						width: 3px;
-						top: 0;
-						left: 0;
-						background: $accent-2;
+				li {
+					height: 36px;
+					line-height: 36px;
+					list-style: none;
+					padding: 0 10px;
+					border-bottom: 1px solid $black-4;
+					cursor: pointer;
+					transition: background .15s $transition;
+					user-select: none;
+					position: relative;
+					// color: $text-dark-secondary;
+					color: $accent-2;
+					@media #{$mobile} {
+						color: $text-light-primary;
+						height: 60px;
+						line-height: 60px;
 					}
+
 					&:hover {
-						background: transparent;
-						cursor: default;
+						background: $black-5;
+					}
+					&:last-of-type {
+						border-bottom: none;
+					}
+					&.selected {
+						color: $text-dark-primary;
+						@media #{$mobile} {
+							color: $accent-3;
+						}
+
+						&:before {
+							content: '';
+							position: absolute;
+							height: 100%;
+							width: 3px;
+							top: 0;
+							left: 0;
+							background: $accent-2;
+						}
+						&:hover {
+							background: transparent;
+							cursor: default;
+						}
+					}
+				}
+			}
+			.user-panel-container {
+				// height: 80px;
+				position: relative;
+				border-bottom: 1px solid $black-4;
+				@media #{$mobile} {
+					padding: 0 10px;
+				}
+
+				.user-panel {
+					height: 80px;
+					width: 100%;
+
+					.user-image-container {
+						height: 80px;
+						width: 60px;
+
+						img {
+							height: 60px;
+							margin: 10px 0;
+							border-radius: 8px;
+						}
+					}
+					.user-info {
+						height: 80px;
+						padding: 0 4px 0 8px;
+						@include flex-center;
+						align-items: left;
+
+						span,
+						a {
+							display: inline-block;
+							width: 136px;
+
+							@include ellipsis();
+						}
+						a {
+							font-size: 0.85rem;
+						}
 					}
 				}
 			}
 		}
-		.user-panel-container {
-			// height: 80px;
-			position: relative;
-			border-bottom: 1px solid $black-4;
+		.sidebar-cover {
+			will-change: opacity;
+			transition: opacity .3s $transition;
+			pointer-events: none;
 
-			.user-panel {
-				height: 80px;
+			@media #{$mobile} {
+				position: fixed;
+				top: 50px;
+				z-index: 1;
+				left: 0;
+				height: 100%;
 				width: 100%;
+				background: $black-2;
+				opacity: 0;
+			}
+		}
+		&.active {
+			// display: block;
+			left: 0;
 
-				.user-image-container {
-					height: 80px;
-					width: 60px;
-
-					img {
-						height: 60px;
-						margin: 10px 0;
-						border-radius: 8px;
-					}
+			@media #{$mobile} {
+				.container {
+					left: 0;
 				}
-				.user-info {
-					height: 80px;
-					padding: 0 4px 0 8px;
-					@include flex-center;
-					align-items: left;
-
-					span,
-					a {
-						display: inline-block;
-						width: 136px;
-
-						@include ellipsis();
-					}
-					a {
-						font-size: 0.85rem;
-					}
+				.sidebar-cover {
+					opacity: 1;
+					pointer-events: initial;
 				}
 			}
 		}
@@ -150,8 +246,9 @@ header {
 	}
 	.shown {
 		padding: 6px 0 6px 20px;
-		/* background: white;
-		box-shadow: $shadow-0; */
+		@media #{$mobile} {
+			padding: 6px 20px;
+		}
 
 		span {
 			color: $text-dark-secondary;
@@ -296,6 +393,7 @@ header {
 					}
 					.instructions {
 						padding: 8px 0 8px 10px;
+						position: relative;
 
 						pre {
 							color: $accent-2;
@@ -306,6 +404,13 @@ header {
 						}
 						button {
 							margin-right: 0;
+						}
+						.uinput-error {
+							display: inline-block;
+							color: $color-red;
+							position: absolute;
+							bottom: 0;
+							left: 10px;
 						}
 
 						&#tfa-disable {
@@ -417,10 +522,20 @@ header {
 				&:first-of-type {
 					color: $text-dark-primary;
 					padding-right: 4px;
+					min-width: 110px;
+
+					@media #{$mobile} {
+						// width: 100%;
+						margin-right: 10px;
+					}
 				}
 				&:last-of-type {
 					float: right;
 					padding-left: 4px;
+
+					@media #{$mobile} {
+						margin-left: 10px;
+					}
 				}
 			}
 		}
